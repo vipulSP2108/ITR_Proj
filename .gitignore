@@ -1,0 +1,16 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+
+# Logs & Temporary files
+*.log
+MUJOCO_LOG.TXT
+T1.zip
+
+# macOS metadata
+.DS_Store
