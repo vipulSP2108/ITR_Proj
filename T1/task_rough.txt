@@ -1,0 +1,146 @@
+https://debojit.notion.site/Task-1-The-Peg-Sorting-28ff4aa874c4802dbf78d6c4b1070250
+
+
+# Task 1: The Peg‑Sorting
+
+<aside>
+🧙‍♂️
+
+Welcome, contender, to the Tri‑Wizard Robotics Endgame. Trial One awaits: sort enchanted pegs into their destined sockets using perception, planning, and a dash of wizardry.
+
+</aside>
+
+### The tale so far
+
+You face four enchanted pegs : Square, Triangle, Circle, and Hexagon; each 4-6 cm across and ~10 cm tall. A matching board of sockets awaits within the robot’s reachable realm.
+
+- Robot: Manipulator X
+- Sensors allowed: Two RGB‑D cameras
+- Scene: Clean, uncluttered, distinct peg colors
+- Modes: Teleoperation via keyboard allowed. Full autonomy earns greater glory.
+
+---
+
+### Quest objectives
+
+1. Detect pegs by color and estimate x‑y coordinates and height (z) from depth (only use height or depth information if needed).
+2. Classify shapes and match each peg to its correct board socket.
+3. Plan and execute safe pick‑and‑place for each peg.
+4. Share a fully reproducible repository and perform a public demo.
+
+---
+
+### Trial map (This is just tentative you can modify as needed)
+
+```mermaid
+flowchart TD
+    A[Summon Sensors<br/>RGB-D ×2] --> B[Color Segmentation<br/>HSV threshold + morphology]
+    B --> C[Pose EstimationCentroid + depth  + orientation]
+    C --> D[Shape Classification<br/>Contours / approxPolyDP / Hu moments / or directly use YOLO]
+    D --> E[Socket Detection<br/>Board model + shape match]
+    E --> F[Planning<br/>Pick-and-place grasp plan]
+    F --> G[Execution<br/>Teleop or Autonomous]
+    G --> H[Verification<br/>In-socket? Retry / Fail-safe]
+
+```
+
+### Supplementary Material (aiding the Vision stack, you are free to choose other alternatives)
+
+GitHub - NorhanM-A/Shape-Detection-with-YOLO: Shape Detection with YOLO: A computer vision project that employs YOLO, a state-of-the-art deep learning framework, to accurately identify and locate various geometric shapes in images. Perfect for applications such as drone-based surveillance and object recognition.
+https://github.com/NorhanM-A/Shape-Detection-with-YOLO
+
+GitHub - farukalamai/traffic-lights-detection-and-color-recognition-using-yolov8: traffic-lights-detection-and-color-recognition-using-yolov8
+https://github.com/farukalamai/traffic-lights-detection-and-color-recognition-using-yolov8
+
+---
+
+### Control and planning
+
+- Grasping: Top grasp. Use pre‑grasp offset, approach along board normal, settle delay before close.
+- Placement: Align orientation; center on socket centroid and lower slowly.
+- Teleop fallback: Keys for approach, open/close, lift, move, place. Emergency stop bound to a single key.
+
+```mermaid
+sequenceDiagram
+    participant U as Wizard (You)
+    participant V as Vision
+    participant P as Planner
+    participant R as Robot Arm
+    U->>V: Request peg and socket poses
+    V-->>U: Peg(x,y,z,shape,color), Socket(x,y,z,shape)
+    U->>P: Plan pick-and-place for each pair
+    P-->>R: Trajectory waypoints
+    R-->>U: Execution status + success/fail
+```
+
+---
+
+### Deliverables of power
+
+- GitHub repository with full replication steps
+- Public demonstration
+
+<aside>
+📦
+
+No report required — the README is your spell scroll.
+
+</aside>
+
+### README checklist
+
+- [ ]  Setup instructions with OS, versions, dependencies
+- [ ]  Launch files or scripts to run the full pipeline
+- [ ]  Calibration notes for both RGB‑D cameras
+- [ ]  Parameter file for color thresholds per peg color
+- [ ]  Usage: teleop and autonomous modes
+- [ ]  Safety and emergency stop instructions
+- [ ]  Evaluation script to log success rate and timing
+
+---
+
+### Judging rubric (Total : 100 Points)
+
+| Category | Points | Notes |
+| --- | --- | --- |
+| Success (Autonomy) | 50 | Fully autonomous pick‑and‑place |
+| Success (Teleoperation) | 30 | Keyboard teleop baseline |
+| Vision: Color detection | 20 | Robust segmentation for all pegs |
+| Vision: Shape detection | 20 | Correct square/triangle/circle/hexagon |
+| GitHub README | 10 | Clear replication steps |
+| Bonus: Fastest execution | 15 | Lowest time among groups |
+| Bonus: Zero failures | 5 | No misplacements or drops |
+
+---
+
+### Wizard’s kit: repo structure (recommended, you are free to make some edits this is just a sample structure)
+
+```
+tri-wizard-peg-trial/
+├─ src/
+│  ├─ vision/
+│  │  ├─ color_segmentation.py
+│  │  └─ shape_detection.py
+│  ├─ planning/
+│  │  └─ pick_place_planner.py
+│  ├─ control/
+│  │  └─ teleop_keyboard.py
+│  └─ utils/
+├─ launch/
+│  ├─ run_autonomy.sh
+│  └─ run_teleop.sh
+├─ config/
+│  ├─ colors.yaml
+│  └─ camera_calib.yaml
+├─ scripts/
+│  └─ evaluate_timing.py
+├─ docs/
+│  └─ demo_guide.md
+└─ README.md
+```
+
+---
+
+### Victory condition
+
+Place all four pegs in their matching sockets, ideally under full autonomy. Announce your triumph with a public demo and a pristine repository so any apprentice can reproduce the magic.
