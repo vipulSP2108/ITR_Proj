@@ -1,0 +1,39 @@
+# ---------------------------------------------------------------------------------------------
+# Simulated workspace layout, derived from the REAL overhead RealSense frame (640x480).
+# Everything below is in PIXELS of that reference image; scene_builder.py converts to metres.
+#
+#   robot frame : origin = robot base centre on the table, +X toward the board, +Y image-down, +Z up
+#   scale       : pixel_scale_m  (metres per pixel at table height).  ESTIMATE - measure the real mat
+#                 or board and update this one number; the whole sim scales consistently.
+# ---------------------------------------------------------------------------------------------
+pixel_scale_m: 0.0014
+base_px: [448, 252]            # robot base centre in the reference image
+mat_px:   {x0: 270, x1: 500, y0: 135, y1: 360}     # green foam pad
+board_px: {x0: 205, x1: 270, y0: 135, y1: 375}     # wooden socket board (overhangs the table edge)
+table_edge_px_x: 270           # table ends here; board hangs past it
+rail_px:  {x0: 280, x1: 570, y: 385}               # aluminium rail on the +Y table edge
+
+# hole centres (reference-image pixels) and their physical size (metres)
+holes_px:
+  circle:   [237, 170]
+  hexagon:  [243, 220]
+  square:   [237, 272]
+  triangle: [245, 332]
+hole_size_m:                   # outline (red) circumradius / half-width ; interior is 3 mm smaller
+  circle: 0.027
+  hexagon: 0.028
+  square: 0.028
+  triangle: 0.031
+
+# peg (task spec: 4-6 cm across, ~10 cm tall)
+peg_radius_m: 0.020
+peg_height_m: 0.100
+peg_mass_kg: 0.08
+
+# mounted RealSense: looks straight down, image centre at this pixel of the reference image
+camera:
+  centre_px: [320, 240]
+  height_above_table_m: 0.61
+  fovy_deg: 58.0               # RealSense D435 infrared/depth vertical FOV (approx)
+  width: 640
+  height: 480

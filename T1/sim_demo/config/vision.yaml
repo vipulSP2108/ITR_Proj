@@ -1,0 +1,14 @@
+# HSV thresholds (OpenCV scale: H 0-179, S/V 0-255) for the simulated camera.
+# For the real RealSense RGB stream re-tune these (see ../../config/colors.yaml for your real values).
+hsv:
+  peg_green: {lo: [48, 120, 40],  hi: [70, 255, 255]}
+  mat:       {lo: [72, 90, 40],   hi: [95, 255, 255]}
+  board:     {lo: [5, 50, 140],   hi: [22, 255, 255]}
+  red_ring_a: {lo: [0, 150, 90],   hi: [8, 255, 255]}
+  red_ring_b: {lo: [172, 150, 90], hi: [179, 255, 255]}
+  marker:    {lo: [138, 110, 60], hi: [162, 255, 255]}
+min_blob_px: 60
+shape_thresholds:         # area / enclosing-circle-area  (circle 1.0, hex 0.83, square 0.64, triangle 0.41)
+  circle_min: 0.90
+  hexagon_min: 0.74
+  square_min: 0.52
