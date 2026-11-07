@@ -1,0 +1,16 @@
+# Calibrated Home Pose for ROBOTIS OpenMANIPULATOR-X
+calibrated_at: "2026-11-07 11:55:00"
+home_degrees:
+  joint1_base_pan: 180.0
+  joint2_shoulder_pitch: 0.0
+  joint3_elbow_pitch: 0.0
+  joint4_wrist_pitch: 0.0
+  joint5_gripper: 90.0
+
+home_encoder_counts:
+  joint1_base_pan: 4096   # or count 1 (180 deg)
+  joint2_shoulder_pitch: 2048
+  joint3_elbow_pitch: 2048
+  joint4_wrist_pitch: 2048
+  joint5_gripper: 3100
+
