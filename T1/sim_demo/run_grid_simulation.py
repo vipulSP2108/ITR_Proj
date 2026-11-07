@@ -48,11 +48,11 @@ from run_pipeline import main as run_pipeline_main
 
 def grid_to_xy(gx: int, gy: int) -> tuple:
     """
-    Converts 11x11 discrete grid coordinate (gx, gy) to robot base frame (X, Y) in metres.
+    Converts discrete grid coordinate (gx, gy) in 0..11 to robot base frame (X, Y) in metres.
     Robot is at (6, 1) -> X=0.0m, Y=0.0m.
     """
-    gx = int(np.clip(gx, 1, 11))
-    gy = int(np.clip(gy, 1, 11))
+    gx = int(np.clip(gx, 0, 11))
+    gy = int(np.clip(gy, 0, 11))
 
     # gy (Forward X): gy=1 -> 0.0m, gy=11 -> 0.25m
     x = (gy - 1) * (0.25 / 10.0)
@@ -65,18 +65,18 @@ def grid_to_xy(gx: int, gy: int) -> tuple:
 
 def draw_ascii_grid(peg_gx: int, peg_gy: int, x_m: float, y_m: float):
     """
-    Displays an intuitive 11x11 ASCII map of the workspace.
+    Displays an intuitive ASCII map of the workspace (0..11 grid).
     """
-    print("\n" + "=" * 59)
-    print("      OPENMANIPULATOR-X WORKSPACE: 11x11 GRID MAP")
-    print("=" * 59)
-    print("               [ BOARD & SOCKET CUTOUTS (X ≈ 0.25m) ]")
-    print("     1   2   3   4   5   6   7   8   9  10  11  <- gx (Lateral / Y)")
-    print("   +---+---+---+---+---+---+---+---+---+---+---+")
+    print("\n" + "=" * 63)
+    print("        OPENMANIPULATOR-X WORKSPACE: GRID MAP")
+    print("=" * 63)
+    print("                 [ BOARD & SOCKET CUTOUTS (X ≈ 0.25m) ]")
+    print("     0   1   2   3   4   5   6   7   8   9  10  11  <- gx (Lateral / Y)")
+    print("   +---+---+---+---+---+---+---+---+---+---+---+---+")
 
-    for gy in range(11, 0, -1):
+    for gy in range(11, -1, -1):
         row_str = f"{gy:2d} |"
-        for gx in range(1, 12):
+        for gx in range(0, 12):
             if gx == 6 and gy == 1:
                 cell = " R "  # Robot Base
             elif gx == peg_gx and gy == peg_gy:
@@ -92,16 +92,16 @@ def draw_ascii_grid(peg_gx: int, peg_gy: int, x_m: float, y_m: float):
             elif 4 <= gy <= 9 and 3 <= gx <= 9:
                 cell = " . "  # Reachable Green Mat Area
             else:
-                cell = "   "  # Outer boundary
+                cell = "   "  # Outer boundary / table
             row_str += cell + "|"
         print(row_str)
-        print("   +---+---+---+---+---+---+---+---+---+---+---+")
+        print("   +---+---+---+---+---+---+---+---+---+---+---+---+")
 
-    print("               [ ROBOT BASE AT (6, 1) (X = 0.0m) ]")
+    print("                 [ ROBOT BASE AT (6, 1) (X = 0.0m) ]")
     print("  Legend: [R] Robot Base  [*] Peg Target  [O] Circle Socket Cutout")
     print(f"  Selected Grid : ({peg_gx}, {peg_gy})")
     print(f"  Robot Frame   : X = {x_m:.3f} m ({x_m*100:.1f} cm), Y = {y_m:.3f} m ({y_m*100:.1f} cm)")
-    print("=" * 59 + "\n")
+    print("=" * 63 + "\n")
 
 
 def main():
