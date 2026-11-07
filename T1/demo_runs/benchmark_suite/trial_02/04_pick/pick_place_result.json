@@ -1,0 +1,34 @@
+{
+  "attempts": [
+    {
+      "attempt": 1,
+      "outcome": "success",
+      "reason": "",
+      "observations": 456
+    }
+  ],
+  "final": {
+    "outcome": "success",
+    "vision_peg_xy_error_to_socket_mm": 1.3939214782588398,
+    "vision_peg_standing_on_board": true,
+    "vision_in_socket": true,
+    "SIM_ONLY_true_peg_error_to_socket_mm": 0.26683375279095606,
+    "SIM_ONLY_true_peg_tilt_deg": 0.001327753628517482,
+    "success": true
+  },
+  "tracking": {
+    "n_obs": 521,
+    "marker_seen_pct": 100.0,
+    "track_err_mean_mm": 3.7766535887516595,
+    "track_err_p95_mm": 19.428305123802843,
+    "track_err_max_mm": 22.992222947194417,
+    "cross_err_mean_mm": 0.20778197551892436,
+    "cross_err_max_mm": 0.6365443875725952,
+    "dir_cos_mean": 0.9979221127551149,
+    "dir_cos_frac_ok": 1.0,
+    "pct_on_track": 100.0,
+    "n_deviating": 0,
+    "n_marker_lost": 0
+  },
+  "plan_tilt_deg": 60
+}

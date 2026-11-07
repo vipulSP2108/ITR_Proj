@@ -289,5 +289,42 @@ python3 scripts/test_camera_stream.py
    ```
    *(Picks the blue square peg from the green mat and places it into the square socket cutout).*
 
+---
 
+## 11. Sim Demo Pipeline (2026-11-07) - `sim_demo/`
 
+**What was added:** a self-contained MuJoCo pipeline (`sim_demo/run_pipeline.py`) that runs Home -> camera/robot calibration -> workspace analysis -> camera-verified circle-peg pick&place, and stores every run in `demo_runs/demo_<timestamp>/`.
+
+**Critical insights (keep):**
+1. **Reach decides the grasp strategy.** Real OMX-X dims (shoulder 77 mm, upper arm 24 fwd/128 up, forearm 124, tool 126) allow a straight-down grasp only to ~22 cm at grasp height. Circle socket from the real overhead image is ~27-32 cm from the base -> a *constant tilted tool* (40-60 deg) is required; peg stays vertical in the gripper.
+2. **Grasp the upper part of the 10 cm peg.** Palm is ~5.6 cm behind the fingertips; low grasps push the peg into the palm.
+3. **After release the retreat must go straight up until the open fingers clear the peg top** - a sideways swing at lower height topples the peg. Same rule for recovery after a missed grasp.
+4. **Calibration by arm motion works:** colour marker on the wrist + FK from published dimensions + depth -> Kabsch. Do it with the table clear (the arm sweeps through the pick area).
+5. **Occlusion:** at home the arm hides part of the table; take detection snapshots with the arm parked aside (pan -90 deg).
+6. **Detection details:** use depth slicing (top 12 mm of the peg) for the peg centre (perspective shows the side wall); sockets via red-outline contour + area/enclosing-circle ratio (circle .95, hex .81, square .65, triangle .42), lifted by ray-plane intersection with the board plane.
+7. **Tracking monitor must be lag-aware** (tolerance 10 mm + 0.12 s x speed), otherwise fast joint moves raise false alarms. Grasp check = finger travel (~30 mm holding the 40 mm peg, 50 mm = closed on nothing).
+8. The older `demo1_20261107/` scripts print fixed text for reachability and "100% ON_TRACK"; the new pipeline computes these from images and kinematics.
+
+**Open items / next steps:** run calibration on the real robot (needs the colour marker + RGB stream), re-tune HSV for the real camera, confirm joint limits and gripper stroke, measure the real mat/board to fix `pixel_scale_m`, then extend to hexagon/square/triangle (orientation alignment needed).
+
+---
+
+## 12. T1 2 Architecture Extensions & Verification (2026-11-08)
+
+**What was added (following `repare.md` §7, §11 and `T2/draft.md`):**
+1. **Hardware Abstraction Layer (`sim_demo/robot_interface.py`):**
+   - Clean interface `RobotInterface` bridging simulation (`SimRobot` wrapping `SimEnv`) and physical hardware (`RealRobot` wrapping `OpenManipulatorController`, `GripperGuard`, counts↔radians adapter, and `--dry-run` elevation).
+2. **Quintic Minimum-Jerk Trajectory & DLS-IK (`sim_demo/trajectory.py`):**
+   - Derived from `T2/draft.md`: minimum-jerk boundary conditions (zero endpoint velocity/acceleration) eliminating actuator strain, plus Damped Least Squares (DLS) IK solver for singularity-robust Cartesian tracking.
+3. **Online Camera Drift Monitor (`sim_demo/drift_monitor.py`):**
+   - Monitors detected socket landmarks across snapshots; detects translational (>4 mm) or rotational (>1.5°) shifts and computes instant closed-form Kabsch extrinsic updates (<1 ms) without pausing execution.
+4. **Multi-Shape Symmetry & Sequencing (`sim_demo/multi_shape.py`):**
+   - Solves the 4-DOF OpenMANIPULATOR-X yaw constraint (no wrist-roll): evaluates minimal rotation alignment modulo shape symmetry (Circle order 0, Hexagon 6, Square 4, Triangle 3) and plans multi-peg sorting sequences.
+5. **Automated Evaluation Benchmark Suite (`sim_demo/evaluate_timing.py`):**
+   - Multi-trial automated harness with randomized peg placements logging cycle times, tracking error, and placement accuracy to `benchmark_summary.md` and `benchmark_results.json`.
+6. **Hardware Calibrated Configurations Added:**
+   - Synchronized `config/calibrated_home.yaml`, `demo1_20261107/slow_step_to_home.py`, and `demo1_20261107/random_circle_sort.py` into `T1 2`.
+7. **Verification Passed:**
+   - `tests/test_sim_demo.py`: 6/6 tests PASS.
+   - `tests/test_extensions.py`: 4/4 tests PASS.
+   - `evaluate_timing.py`: 100.0% success rate across randomized placements, mean placement error 1.36 mm, cycle time 34.8–54.6 s.

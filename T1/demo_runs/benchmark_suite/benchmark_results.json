@@ -1,0 +1,41 @@
+{
+  "num_trials": 2,
+  "success_count": 2,
+  "success_rate_pct": 100.0,
+  "mean_total_time_s": 44.69,
+  "fastest_total_time_s": 34.79,
+  "mean_pick_place_time_s": 41.38,
+  "mean_placement_error_mm": 1.36,
+  "trials": [
+    {
+      "trial": 1,
+      "peg_xy": [
+        0.1800009408059088,
+        -0.06158142257278801
+      ],
+      "success": true,
+      "final_err_mm": 1.3354753194528013,
+      "on_track_pct": 100.0,
+      "time_home_s": 0.21,
+      "time_calib_s": 1.31,
+      "time_ws_s": 1.58,
+      "time_pick_place_s": 51.21,
+      "total_time_s": 54.59
+    },
+    {
+      "trial": 2,
+      "peg_xy": [
+        0.18747779871864304,
+        0.0007673195827117029
+      ],
+      "success": true,
+      "final_err_mm": 1.3939214782588398,
+      "on_track_pct": 100.0,
+      "time_home_s": 0.27,
+      "time_calib_s": 1.76,
+      "time_ws_s": 0.9,
+      "time_pick_place_s": 31.55,
+      "total_time_s": 34.79
+    }
+  ]
+}

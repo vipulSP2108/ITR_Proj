@@ -1,0 +1,38 @@
+# Color thresholds in HSV color space (OpenCV scale: H: 0-179, S: 0-255, V: 0-255)
+# Note: Red wraps around the hue boundary (0/180), so it supports two ranges.
+
+colors:
+  yellow: # Triangle Peg
+    lower: [16, 80, 80]
+    upper: [32, 255, 255]
+    bgr: [68, 139, 159]
+    shape: "triangle"
+
+  blue: # Square Peg
+    lower: [95, 100, 50]
+    upper: [130, 255, 255]
+    bgr: [127, 62, 3]
+    shape: "square"
+
+  orange_red: # Hexagon Peg
+    lower1: [0, 85, 90]
+    upper1: [12, 255, 255]
+    lower2: [170, 85, 90]
+    upper2: [179, 255, 255]
+    bgr: [99, 106, 214]
+    shape: "hexagon"
+
+  green: # Circle / Cylinder Peg
+    lower: [38, 65, 65]
+    upper: [80, 255, 255]
+    bgr: [74, 165, 103]
+    shape: "circle"
+
+morphology:
+  kernel_size: 5
+  open_iterations: 2
+  close_iterations: 2
+
+min_contour_area: 500
+max_contour_area: 50000
+

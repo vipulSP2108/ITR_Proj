@@ -1,0 +1,120 @@
+<mujoco model="openmanipulator_x_peg_sorting_sim_demo">
+  <compiler angle="radian" coordinate="local"/>
+  <option gravity="0 0 -9.81" timestep="0.002" integrator="implicitfast" solver="Newton" iterations="50" noslip_iterations="3"/>
+  <visual>
+    <headlight ambient="0.25 0.25 0.25" diffuse="0.35 0.35 0.35" specular="0.0 0.0 0.0"/>
+    <rgba haze="0.15 0.25 0.35 1"/>
+    <global offwidth="1280" offheight="720"/>
+    <quality shadowsize="2048"/>
+  </visual>
+  <asset>
+    <material name="mat_table" rgba="0.30 0.32 0.35 1" specular="0.1"/>
+    <material name="mat_green_pad" rgba="0.20 0.70 0.50 1" specular="0.0"/>
+    <material name="mat_board" rgba="0.85 0.65 0.45 1" specular="0.0"/>
+    <material name="mat_robot_dark" rgba="0.18 0.18 0.20 1"/>
+    <material name="mat_robot_white" rgba="0.88 0.88 0.90 1"/>
+    <material name="mat_marker" rgba="1.0 0.0 1.0 1" specular="0"/>
+    <material name="mat_blue_peg" rgba="0.10 0.35 0.85 1"/>
+    <material name="mat_yellow_peg" rgba="0.95 0.85 0.10 1"/>
+    <material name="mat_orange_peg" rgba="0.95 0.40 0.10 1"/>
+    <material name="mat_green_peg" rgba="0.20 0.80 0.25 1"/>
+    <material name="mat_socket_red" rgba="0.85 0.15 0.15 1"/>
+    <material name="mat_hole" rgba="0.10 0.10 0.10 1"/>
+    <material name="mat_aluminum" rgba="0.80 0.82 0.85 1"/>
+    <mesh name="m_hexagon_out" vertex="0.00000 0.02800 -0.00020 -0.02425 0.01400 -0.00020 -0.02425 -0.01400 -0.00020 -0.00000 -0.02800 -0.00020 0.02425 -0.01400 -0.00020 0.02425 0.01400 -0.00020 0.00000 0.02800 0.00020 -0.02425 0.01400 0.00020 -0.02425 -0.01400 0.00020 -0.00000 -0.02800 0.00020 0.02425 -0.01400 0.00020 0.02425 0.01400 0.00020"/>
+    <mesh name="m_hexagon_in" vertex="0.00000 0.02500 -0.00020 -0.02165 0.01250 -0.00020 -0.02165 -0.01250 -0.00020 -0.00000 -0.02500 -0.00020 0.02165 -0.01250 -0.00020 0.02165 0.01250 -0.00020 0.00000 0.02500 0.00020 -0.02165 0.01250 0.00020 -0.02165 -0.01250 0.00020 -0.00000 -0.02500 0.00020 0.02165 -0.01250 0.00020 0.02165 0.01250 0.00020"/>
+    <mesh name="m_triangle_out" vertex="-0.03100 0.00000 -0.00020 0.01550 0.02685 -0.00020 0.01550 -0.02685 -0.00020 -0.03100 0.00000 0.00020 0.01550 0.02685 0.00020 0.01550 -0.02685 0.00020"/>
+    <mesh name="m_triangle_in" vertex="-0.02800 0.00000 -0.00020 0.01400 0.02425 -0.00020 0.01400 -0.02425 -0.00020 -0.02800 0.00000 0.00020 0.01400 0.02425 0.00020 0.01400 -0.02425 0.00020"/>
+  </asset>
+  <default>
+    <geom condim="3" friction="1 0.02 0.002"/>
+  </default>
+
+  <worldbody>
+    <light directional="true" pos="0 0 3" dir="0 0 -1" diffuse="0.45 0.45 0.45" specular="0 0 0"/>
+    <light directional="false" pos="0.5 -0.5 1.5" diffuse="0.15 0.15 0.15" specular="0 0 0"/>
+
+    <geom name="floor" type="plane" size="3 3 0.1" pos="0 0 -0.74" rgba="0.35 0.35 0.37 1"/>
+    <!-- table: top surface at z = 0, ends at X = 0.249 (board overhangs it) -->
+    <geom name="table" type="box" size="0.4246 0.51 0.02" pos="-0.1754 -0.3038 -0.02" material="mat_table"/>
+    <geom name="rail" type="box" size="0.2030 0.02 0.02" pos="0.0322 0.1862 0.02" material="mat_aluminum" contype="0" conaffinity="0"/>
+    <geom name="green_mat" type="box" size="0.1610 0.1575 0.0050" pos="0.0882 -0.0063 0.0050" material="mat_green_pad"/>
+    <geom name="socket_board" type="box" size="0.0455 0.1680 0.0040" pos="0.2947 0.0042 0.0040" material="mat_board"/>
+    <geom name="hole_circle_outline" type="cylinder" size="0.027 0.0002" pos="0.2954 -0.1148 0.0082" material="mat_socket_red" contype="0" conaffinity="0"/>
+    <geom name="hole_circle_interior" type="cylinder" size="0.024 0.0002" pos="0.2954 -0.1148 0.0085" material="mat_hole" contype="0" conaffinity="0"/>
+    <geom name="hole_hexagon_outline" type="mesh" mesh="m_hexagon_out" pos="0.2870 -0.0448 0.0082" material="mat_socket_red" contype="0" conaffinity="0"/>
+    <geom name="hole_hexagon_interior" type="mesh" mesh="m_hexagon_in" pos="0.2870 -0.0448 0.0085" material="mat_hole" contype="0" conaffinity="0"/>
+    <geom name="hole_square_outline" type="box" size="0.028 0.028 0.0002" pos="0.2954 0.0280 0.0082" material="mat_socket_red" contype="0" conaffinity="0"/>
+    <geom name="hole_square_interior" type="box" size="0.025 0.025 0.0002" pos="0.2954 0.0280 0.0085" material="mat_hole" contype="0" conaffinity="0"/>
+    <geom name="hole_triangle_outline" type="mesh" mesh="m_triangle_out" pos="0.2842 0.1120 0.0082" material="mat_socket_red" contype="0" conaffinity="0"/>
+    <geom name="hole_triangle_interior" type="mesh" mesh="m_triangle_in" pos="0.2842 0.1120 0.0085" material="mat_hole" contype="0" conaffinity="0"/>
+
+    <camera name="overhead_realsense" pos="0.1792 -0.0168 0.6100" xyaxes="-1 0 0 0 -1 0" fovy="58.0" mode="fixed"/>
+    <camera name="oblique_view" pos="-0.30 -0.42 0.34" xyaxes="0.68232 -0.73106 0.00000 0.31157 0.29080 0.90463" fovy="50" mode="fixed"/>
+    <camera name="side_view" pos="0.16 -0.62 0.17" xyaxes="1.00000 0.00000 -0.00000 0.00000 0.11219 0.99369" fovy="45" mode="fixed"/>
+
+    <body name="peg_circle" pos="0.1600 0.0715 0.0605">
+      <freejoint name="jnt_peg_circle"/>
+      <geom name="peg_circle_geom" type="cylinder" size="0.02 0.05" material="mat_green_peg" mass="0.08" friction="1.5 0.02 0.002" condim="4" solref="0.004 1" solimp="0.95 0.99 0.001"/>
+    </body>
+
+    <!-- ============ ROBOTIS OpenMANIPULATOR-X (published dimensions) ============ -->
+    <body name="robot_base" pos="0 0 0">
+      <geom type="cylinder" size="0.05 0.015" pos="0 0 0.015" material="mat_robot_dark"/>
+      <geom type="box" size="0.035 0.035 0.02" pos="0 0 0.050" material="mat_robot_dark"/>
+      <body name="link1" pos="0 0 0.077" gravcomp="1">
+        <joint name="joint1" type="hinge" axis="0 0 1" range="-3.14159 3.14159" damping="0.5" armature="0.01"/>
+        <geom type="cylinder" size="0.028 0.018" material="mat_robot_dark" contype="0" conaffinity="0"/>
+        <body name="link2" gravcomp="1">
+          <joint name="joint2" type="hinge" axis="0 1 0" range="-1.7907 1.5708" damping="0.5" armature="0.01"/>
+          <geom type="capsule" size="0.020" fromto="0 0 0 0.024 0 0.128" material="mat_robot_white"/>
+          <geom type="box" size="0.018 0.024 0.015" pos="0.024 0 0.128" material="mat_robot_dark"/>
+          <body name="link3" pos="0.024 0 0.128" gravcomp="1">
+            <joint name="joint3" type="hinge" axis="0 1 0" range="-0.9425 1.3823" damping="0.5" armature="0.01"/>
+            <geom type="capsule" size="0.018" fromto="0 0 0 0.124 0 0" material="mat_robot_white"/>
+            <geom type="box" size="0.016 0.024 0.018" pos="0.124 0 0" material="mat_robot_dark"/>
+            <body name="link4" pos="0.124 0 0" gravcomp="1">
+              <joint name="joint4" type="hinge" axis="0 1 0" range="-1.7907 2.0420" damping="0.5" armature="0.01"/>
+              <geom type="box" size="0.018 0.022 0.018" pos="0.012 0 0" material="mat_robot_dark"/>
+              <!-- colored tool marker on a short mast (detected by the camera for calibration/tracking) -->
+              <geom name="marker_mast" type="capsule" size="0.0025" fromto="0 0 0 0 0 0.030" material="mat_robot_dark" contype="0" conaffinity="0"/>
+              <geom name="tool_marker" type="sphere" size="0.009" pos="0 0 0.030" material="mat_marker" contype="0" conaffinity="0"/>
+              <body name="gripper_base" pos="0.045 0 0" gravcomp="1">
+                <geom type="box" size="0.025 0.050 0.016" material="mat_robot_dark"/>
+                <body name="finger_left" pos="0.025 0.040 0" gravcomp="1">
+                  <joint name="grip_left" type="slide" axis="0 1 0" range="-0.025 0" damping="2.0" armature="0.002"/>
+                  <geom name="finger_left_pad" type="box" size="0.028 0.005 0.014" pos="0.028 0 0" material="mat_robot_white" friction="2.0 0.05 0.002" condim="4" solref="0.004 1" solimp="0.95 0.99 0.001"/>
+                </body>
+                <body name="finger_right" pos="0.025 -0.040 0" gravcomp="1">
+                  <joint name="grip_right" type="slide" axis="0 1 0" range="0 0.025" damping="2.0" armature="0.002"/>
+                  <geom name="finger_right_pad" type="box" size="0.028 0.005 0.014" pos="0.028 0 0" material="mat_robot_white" friction="2.0 0.05 0.002" condim="4" solref="0.004 1" solimp="0.95 0.99 0.001"/>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <contact>
+    <exclude body1="robot_base" body2="link1"/>
+    <exclude body1="link1" body2="link2"/>
+    <exclude body1="robot_base" body2="link2"/>
+    <exclude body1="robot_base" body2="link3"/>
+    <exclude body1="link2" body2="link3"/>
+    <exclude body1="link3" body2="link4"/>
+    <exclude body1="link4" body2="gripper_base"/>
+    <exclude body1="gripper_base" body2="finger_left"/>
+    <exclude body1="gripper_base" body2="finger_right"/>
+  </contact>
+
+  <actuator>
+    <position name="act_joint1" joint="joint1" kp="200" kv="14" forcerange="-8 8"/>
+    <position name="act_joint2" joint="joint2" kp="300" kv="20" forcerange="-8 8"/>
+    <position name="act_joint3" joint="joint3" kp="250" kv="16" forcerange="-8 8"/>
+    <position name="act_joint4" joint="joint4" kp="200" kv="12" forcerange="-6 6"/>
+    <position name="act_grip_left"  joint="grip_left"  kp="400" kv="6" forcerange="-12 12"/>
+    <position name="act_grip_right" joint="grip_right" kp="400" kv="6" forcerange="-12 12"/>
+  </actuator>
+</mujoco>

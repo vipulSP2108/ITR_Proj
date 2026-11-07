@@ -1,0 +1,212 @@
+{
+  "surfaces": {
+    "mat": {
+      "z": 0.010057869551161613,
+      "plane": [
+        8.79880464844822e-06,
+        -0.00026650310798461834,
+        0.010047042963088438
+      ],
+      "x_range": [
+        -0.0671919332179481,
+        0.24473135911837232
+      ],
+      "y_range": [
+        -0.15966152314239235,
+        0.14683461672810064
+      ],
+      "n_px": 45209
+    },
+    "board": {
+      "z": 0.008077641947191294,
+      "plane": [
+        -0.0018213443402226085,
+        -0.000929353154701787,
+        0.008630877058302273
+      ],
+      "x_range": [
+        0.2533516225550175,
+        0.3374043883129007
+      ],
+      "y_range": [
+        -0.16054811370661526,
+        0.16842487768442502
+      ],
+      "n_px": 11191
+    }
+  },
+  "holes": [
+    {
+      "shape": "circle",
+      "ratio": 0.9524188757922791,
+      "vertices": 8,
+      "x": 0.2952844388203137,
+      "y": -0.11494064510785953,
+      "z": 0.008077641947191294,
+      "radius": 0.027218551478693252,
+      "centroid_px": [
+        235.96013289036546,
+        168.99252491694352
+      ]
+    },
+    {
+      "shape": "hexagon",
+      "ratio": 0.8120110202865033,
+      "vertices": 6,
+      "x": 0.28692347746587865,
+      "y": -0.04490147198442925,
+      "z": 0.008077641947191294,
+      "radius": 0.025707148502605377,
+      "centroid_px": [
+        241.9906890130354,
+        219.36405959031657
+      ]
+    },
+    {
+      "shape": "square",
+      "ratio": 0.6519144812386081,
+      "vertices": 4,
+      "x": 0.29527742938503954,
+      "y": 0.02824477522250353,
+      "z": 0.008077641947191294,
+      "radius": 0.032142312098855284,
+      "centroid_px": [
+        236.0,
+        271.97617629541395
+      ]
+    },
+    {
+      "shape": "triangle",
+      "ratio": 0.4226258912051575,
+      "vertices": 3,
+      "x": 0.28425306405469264,
+      "y": 0.11202674963172606,
+      "z": 0.008077641947191294,
+      "radius": 0.020410145466189678,
+      "centroid_px": [
+        243.94977843426884,
+        332.23485967503694
+      ]
+    }
+  ],
+  "peg": {
+    "shape": "circle",
+    "ratio": 0.9322907004930773,
+    "x": 0.1601070269723067,
+    "y": 0.07084872456114268,
+    "z_top": 0.11180169925634553,
+    "height": 0.10174382970518392,
+    "radius": 0.020283734275856925,
+    "n_px": 1211,
+    "n_top_px": 976,
+    "centroid_px": [
+      336.0245901639344,
+      315.3995901639344
+    ],
+    "visible_fraction": null
+  },
+  "circle_hole": {
+    "shape": "circle",
+    "ratio": 0.9524188757922791,
+    "vertices": 8,
+    "x": 0.2952844388203137,
+    "y": -0.11494064510785953,
+    "z": 0.008077641947191294,
+    "radius": 0.027218551478693252,
+    "centroid_px": [
+      235.96013289036546,
+      168.99252491694352
+    ]
+  },
+  "distances_from_base_m": {
+    "peg": 0.17508227168349058,
+    "circle_hole": 0.316866299418601
+  },
+  "max_vertical_reach_at_grasp_height_m": 0.21800000000000014,
+  "reachability_cells_pick_height": {
+    "vertical": 640,
+    "tilt30": 214,
+    "tilt60": 193,
+    "none": 75
+  },
+  "reachability_cells_place_height": {
+    "vertical": 640,
+    "tilt30": 214,
+    "tilt60": 193,
+    "none": 75
+  },
+  "verdict": {
+    "peg_min_tilt_deg": null,
+    "chosen_tilt_deg": 60,
+    "feasibility": [
+      {
+        "tilt_deg": 0,
+        "feasible": false,
+        "reason": "'pick_hover' at r=17.5 cm, z=12.7 cm not reachable"
+      },
+      {
+        "tilt_deg": 5,
+        "feasible": false,
+        "reason": "'transit' at r=31.7 cm, z=9.9 cm not reachable"
+      },
+      {
+        "tilt_deg": 10,
+        "feasible": false,
+        "reason": "'transit' at r=31.7 cm, z=9.9 cm not reachable"
+      },
+      {
+        "tilt_deg": 15,
+        "feasible": false,
+        "reason": "'transit' at r=31.7 cm, z=9.9 cm not reachable"
+      },
+      {
+        "tilt_deg": 20,
+        "feasible": false,
+        "reason": "'transit' at r=31.7 cm, z=9.9 cm not reachable"
+      },
+      {
+        "tilt_deg": 25,
+        "feasible": false,
+        "reason": "'transit' at r=31.7 cm, z=9.9 cm not reachable"
+      },
+      {
+        "tilt_deg": 30,
+        "feasible": false,
+        "reason": "'transit' at r=31.7 cm, z=9.9 cm not reachable"
+      },
+      {
+        "tilt_deg": 35,
+        "feasible": false,
+        "reason": "'transit' at r=31.7 cm, z=9.9 cm not reachable"
+      },
+      {
+        "tilt_deg": 40,
+        "feasible": false,
+        "reason": "'transit' at r=31.7 cm, z=9.9 cm not reachable"
+      },
+      {
+        "tilt_deg": 45,
+        "feasible": false,
+        "reason": "'transit' at r=31.7 cm, z=9.9 cm not reachable"
+      },
+      {
+        "tilt_deg": 50,
+        "feasible": false,
+        "reason": "'transit' at r=31.7 cm, z=9.9 cm not reachable"
+      },
+      {
+        "tilt_deg": 55,
+        "feasible": false,
+        "reason": "'place_retreat' at r=31.7 cm, z=13.6 cm not reachable"
+      },
+      {
+        "tilt_deg": 60,
+        "feasible": true,
+        "reason": "all waypoints & segments reachable"
+      }
+    ],
+    "notes": [
+      "vertical top-grasp cannot reach every waypoint: using a tilted grasp (peg stays vertical in the gripper)"
+    ]
+  }
+}

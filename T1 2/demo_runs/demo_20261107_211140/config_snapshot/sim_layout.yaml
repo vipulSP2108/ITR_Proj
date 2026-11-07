@@ -1,0 +1,48 @@
+base_px:
+- 448
+- 252
+board_px:
+  x0: 205
+  x1: 270
+  y0: 135
+  y1: 375
+camera:
+  centre_px:
+  - 320
+  - 240
+  fovy_deg: 58.0
+  height: 480
+  height_above_table_m: 0.61
+  width: 640
+hole_size_m:
+  circle: 0.027
+  hexagon: 0.028
+  square: 0.028
+  triangle: 0.031
+holes_px:
+  circle:
+  - 237
+  - 170
+  hexagon:
+  - 243
+  - 220
+  square:
+  - 237
+  - 272
+  triangle:
+  - 245
+  - 332
+mat_px:
+  x0: 270
+  x1: 500
+  y0: 135
+  y1: 360
+peg_height_m: 0.1
+peg_mass_kg: 0.08
+peg_radius_m: 0.02
+pixel_scale_m: 0.0014
+rail_px:
+  x0: 280
+  x1: 570
+  y: 385
+table_edge_px_x: 270

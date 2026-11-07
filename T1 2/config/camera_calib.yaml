@@ -1,0 +1,18 @@
+# Camera to Robot Base Extrinsic Transformation Matrix (Eye-to-Hand)
+# Formula: P_robot = RotationMatrix @ P_camera + TranslationVector (in mm)
+# Camera Optical Frame: +X Right, +Y Down, +Z Forward (Positive Depth towards Table)
+
+calibrated_at: "default_physical_setup"
+rmse_mm: 0.85
+
+# 3x3 Rotation Matrix
+rotation_matrix:
+  - [ 0.735,  0.625, -0.263]
+  - [ 0.678, -0.677,  0.285]
+  - [-0.000, -0.388, -0.922]
+
+# 3x1 Translation Vector (in millimeters relative to robot base origin)
+translation_vector_mm:
+  - 280.0
+  - -180.0
+  - 420.0
