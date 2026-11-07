@@ -8,19 +8,33 @@ Workspace Grid Layout:
   • Lateral Axis  (gx in 1..11): gx=1 is left (-Y ≈ -0.15m, circle socket side), gx=6 is center (Y=0.0m), gx=11 is right (+Y ≈ +0.15m).
   • Forward Axis  (gy in 1..11): gy=1 is robot base (X=0.0m), gy=7 is center mat (X=0.15m), gy=11 is board edge (X≈0.25m).
 
-Usage:
-  # Random placement across valid reachable workspace:
-  python3 run_grid_simulation.py --random
+Live MuJoCo Viewer:
+  • By default, launches MuJoCo's interactive 3D viewer live.
+  • On macOS, automatically handles Cocoa main-thread requirements via seamless `mjpython` dispatch.
 
-  # Specific 11x11 grid coordinate (e.g. gx=4, gy=7):
+Usage:
+  # Launch live simulation with peg placed at grid coordinate (4, 7):
   python3 run_grid_simulation.py --grid 4 7
 
-  # Fast run without MP4 video generation:
-  python3 run_grid_simulation.py --grid 6 8 --no-video
+  # Random peg placement across reachable workspace:
+  python3 run_grid_simulation.py --random
+
+  # Headless mode (fast, without live viewer):
+  python3 run_grid_simulation.py --grid 4 7 --headless
 """
 
 import os
 import sys
+import shutil
+
+# Seamless auto-dispatch to mjpython on macOS for native Cocoa 3D viewer
+if sys.platform == "darwin" and os.environ.get("MJPYTHON_LAUNCHED") != "1":
+    if "--no-viewer" not in sys.argv and "--headless" not in sys.argv:
+        mjpython = shutil.which("mjpython")
+        if mjpython and os.path.exists(mjpython):
+            os.environ["MJPYTHON_LAUNCHED"] = "1"
+            os.execv(mjpython, [mjpython] + sys.argv)
+
 import argparse
 import random
 import numpy as np
@@ -104,6 +118,16 @@ def main():
     group.add_argument("--peg-xy", type=float, nargs=2, metavar=("X", "Y"),
                        help="Direct metric coordinates in metres (e.g. 0.16 0.05).")
 
+    parser.add_argument("--viewer", dest="viewer", action="store_true", default=True,
+                        help="Launch live MuJoCo 3D interactive viewer (default: True).")
+    parser.add_argument("--no-viewer", "--headless", dest="viewer", action="store_false",
+                        help="Disable live viewer window for fast headless execution.")
+    parser.add_argument("--opencv-gui", action="store_true", default=False,
+                        help="Use OpenCV HUD viewer window instead of native MuJoCo viewer.")
+    parser.add_argument("--calib-poses", type=int, default=8,
+                        help="Number of calibration poses (default: 8 for fast demo, 16 for maximum precision).")
+    parser.add_argument("--linger", type=float, default=3.0,
+                        help="Seconds to keep viewer window open upon completion (default: 3.0s).")
     parser.add_argument("--no-video", action="store_true", help="Skip MP4 video rendering.")
     parser.add_argument("--until", choices=["home", "workspace", "pick"], default="pick")
     args = parser.parse_args()
@@ -131,8 +155,14 @@ def main():
     sys.argv = [
         os.path.join(HERE, "run_pipeline.py"),
         "--peg-xy", str(x), str(y),
-        "--until", args.until
+        "--until", args.until,
+        "--calib-poses", str(args.calib_poses),
+        "--linger", str(args.linger)
     ]
+    if args.viewer and not args.opencv_gui:
+        sys.argv.append("--viewer")
+    elif args.opencv_gui:
+        sys.argv.append("--opencv-gui")
     if args.no_video:
         sys.argv.append("--no-video")
 
@@ -142,3 +172,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

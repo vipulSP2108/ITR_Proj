@@ -11,6 +11,8 @@ venv/
 *.log
 MUJOCO_LOG.TXT
 T1.zip
+demo_runs/
+*/demo_runs/
 
 # macOS metadata
 .DS_Store

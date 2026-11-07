@@ -432,6 +432,10 @@ def main():
     ap.add_argument("--depth-noise-mm", type=float, default=1.5, help="RealSense-like depth noise at 0.6 m")
     ap.add_argument("--inject-miss", action="store_true", help="test recovery: move the peg after the snapshot so the first grasp misses")
     ap.add_argument("--layout", default=None, help="alternative sim_layout.yaml")
+    ap.add_argument("--viewer", action="store_true", default=False, help="Launch MuJoCo interactive 3D viewer window live.")
+    ap.add_argument("--opencv-gui", action="store_true", default=False, help="Use live OpenCV HUD window instead of native MuJoCo viewer.")
+    ap.add_argument("--pace-fps", type=float, default=60.0, help="Pacing FPS for live viewer animation (default: 60, 0 for max speed).")
+    ap.add_argument("--linger", type=float, default=3.0, help="Seconds to keep viewer window open upon completion (default: 3.0s).")
     args = ap.parse_args()
 
     t0 = time.time()
@@ -449,7 +453,19 @@ def main():
     peg_xy = tuple(args.peg_xy) if args.peg_xy else default_peg_xy(args.seed)
     say(f"run folder: {run_dir}\npeg placed (ground truth, hidden from the pipeline) at x={peg_xy[0]:.3f} y={peg_xy[1]:.3f} m")
 
-    env = SimEnv(layout_cfg=layout, peg_xy=peg_xy, depth_noise_m=args.depth_noise_mm / 1000.0)
+    env = SimEnv(
+        layout_cfg=layout,
+        peg_xy=peg_xy,
+        depth_noise_m=args.depth_noise_mm / 1000.0,
+        viewer=args.viewer or args.opencv_gui,
+        pace_fps=args.pace_fps
+    )
+    if args.opencv_gui:
+        env.opencv_viewer = True
+        if env.viewer:
+            env.viewer.close()
+            env.viewer = None
+
     open(os.path.join(snap, "scene.xml"), "w").write(env.xml)
     log = dict(peg_xy_true=peg_xy, args=vars(args))
     try:
@@ -464,6 +480,7 @@ def main():
     finally:
         jdump(os.path.join(run_dir, "run_log.json"), log)
         write_summary(run_dir, log, args, time.time() - t0)
+        env.close_viewer(linger_s=args.linger if (args.viewer or args.opencv_gui) else 0.0)
     say(f"\ndone in {time.time()-t0:.0f} s  ->  {run_dir}\n   open summary.md first")
     return run_dir
 

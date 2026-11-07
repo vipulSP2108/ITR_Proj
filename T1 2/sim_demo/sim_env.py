@@ -4,10 +4,11 @@ MuJoCo simulation environment: arm control, mounted-camera RGB-D capture, ground
 Ground-truth accessors (gt_*) exist ONLY for validating the pipeline (calibration error, final
 placement check).  The perception / planning code never calls them.
 """
-import os, sys
+import os, sys, time
 if sys.platform.startswith("linux") and not os.environ.get("DISPLAY"):
     os.environ.setdefault("MUJOCO_GL", "egl")      # headless Linux; macOS uses its native context
 import numpy as np
+import cv2
 import mujoco
 
 import arm_model as A
@@ -41,7 +42,8 @@ class Camera:
 
 class SimEnv:
     def __init__(self, layout_cfg=None, pegs=("circle",), peg_xy=None, seed=7,
-                 depth_noise_m=0.0015, rng_seed=0, park_peg=True):
+                 depth_noise_m=0.0015, rng_seed=0, park_peg=True,
+                 viewer=False, pace_fps=60.0):
         self.layout_cfg = layout_cfg or load_layout()
         self.layout = Layout(self.layout_cfg)
         self.xml = build_scene_xml(self.layout_cfg, pegs=pegs, peg_xy=peg_xy, seed=seed)
@@ -67,7 +69,64 @@ class SimEnv:
         self.ctrl_g = GRIP_OPEN
         self.t = 0.0
         self.frame_hooks = []        # callables(env) invoked once per control step
+        self.viewer = None
+        self.opencv_viewer = False
+        self.pace_fps = pace_fps
+        self._step_count = 0
         self.reset()
+        if viewer:
+            self.open_viewer()
+
+    def open_viewer(self):
+        """Launches live MuJoCo passive 3D viewer, or falls back to OpenCV HUD."""
+        try:
+            import mujoco.viewer
+            self.viewer = mujoco.viewer.launch_passive(self.model, self.data)
+            self.viewer.cam.lookat[:] = [0.15, 0.0, 0.05]
+            self.viewer.cam.distance = 0.70
+            self.viewer.cam.elevation = -28.0
+            self.viewer.cam.azimuth = 135.0
+            print("  [MuJoCo Viewer] Interactive 3D viewer opened.")
+        except Exception as exc:
+            print(f"  [MuJoCo Viewer] Native viewer unavailable ({exc}); activating OpenCV HUD window.")
+            self.opencv_viewer = True
+            cv2.namedWindow("MuJoCo Live Simulation", cv2.WINDOW_AUTOSIZE)
+
+    def close_viewer(self, linger_s: float = 0.0):
+        if linger_s > 0 and (self.viewer is not None or self.opencv_viewer):
+            t_end = time.time() + linger_s
+            while time.time() < t_end:
+                if self.viewer is not None and self.viewer.is_running():
+                    self.viewer.sync()
+                    time.sleep(0.02)
+                elif self.opencv_viewer:
+                    cv2.waitKey(20)
+                else:
+                    break
+        if self.viewer is not None:
+            try:
+                self.viewer.close()
+            except Exception:
+                pass
+            self.viewer = None
+        if self.opencv_viewer:
+            try:
+                cv2.destroyAllWindows()
+            except Exception:
+                pass
+            self.opencv_viewer = False
+
+    def _sync_opencv_viewer(self):
+        self._step_count += 1
+        if self._step_count % 2 != 0:
+            return
+        bgr, _ = self.capture_rgbd()
+        obl = self.render_view("oblique_view")
+        cv2.putText(obl, "3D Oblique View", (12, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (240, 240, 240), 1)
+        cv2.putText(bgr, "Mounted Camera View", (12, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (120, 255, 120), 1)
+        combo = np.hstack([bgr, obl])
+        cv2.imshow("MuJoCo Live Simulation", combo)
+        cv2.waitKey(1)
 
     # ------------------------------------------------------------------ basic control
     def reset(self):
@@ -93,6 +152,8 @@ class SimEnv:
         mujoco.mj_forward(self.model, self.data)
         for _ in range(150):
             mujoco.mj_step(self.model, self.data)
+        if self.viewer is not None and self.viewer.is_running():
+            self.viewer.sync()
 
     def _apply_ctrl(self):
         self.data.ctrl[0:4] = self.ctrl_q
@@ -107,6 +168,12 @@ class SimEnv:
             self.t += CTRL_DT
             for h in self.frame_hooks:
                 h(self)
+            if self.viewer is not None and self.viewer.is_running():
+                self.viewer.sync()
+                if self.pace_fps > 0:
+                    time.sleep(1.0 / self.pace_fps)
+            elif self.opencv_viewer:
+                self._sync_opencv_viewer()
 
     def read_joints(self):
         """Joint encoder readout (what the real Dynamixels would report)."""
