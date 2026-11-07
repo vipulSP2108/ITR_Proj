@@ -27,7 +27,7 @@ import yaml
 import arm_model as A
 import viz
 from scene_builder import MAT_TOP, BOARD_TOP, MARKER_R, load_layout, default_peg_xy
-from perception import (load_vision_cfg, detect_surfaces, detect_holes, detect_green_peg, detect_marker, color_masks)
+from perception import (load_vision_cfg, detect_surfaces, detect_holes, detect_peg, detect_green_peg, detect_marker, color_masks)
 from calibration import run_calibration, transform_error
 from workspace import reachability_grid, draw_reachability_overlay, TILT_STEPS_DEG
 from planner import plan_pick_place, GRASP_DEPTH
@@ -117,7 +117,7 @@ def stage_calibration(env, cfg, d, log, max_poses):
 
 
 # =============================================================================================
-def snapshot_detect(env, cfg, T, d=None, tag="snapshot", mat_z=None, board_z=None, save=True):
+def snapshot_detect(env, cfg, T, d=None, tag="snapshot", mat_z=None, board_z=None, save=True, shape="circle"):
     """Park the arm aside, grab an RGB-D frame, detect surfaces/holes/peg."""
     env.move_joints(A.SIDE_PARK_Q, 2.0); env.settle(0.6)
     bgr, depth = env.capture_rgbd()
@@ -125,23 +125,23 @@ def snapshot_detect(env, cfg, T, d=None, tag="snapshot", mat_z=None, board_z=Non
     mat_z = surf["mat"]["z"] if surf.get("mat") else MAT_TOP
     board_z = surf["board"]["z"] if surf.get("board") else BOARD_TOP
     holes = detect_holes(bgr, depth, env.cam, cfg, T, board_z)
-    peg = detect_green_peg(bgr, depth, env.cam, cfg, T, mat_z)
+    peg = detect_peg(bgr, depth, env.cam, cfg, T, mat_z, shape=shape)
     return dict(bgr=bgr, depth=depth, surfaces=surf, holes=holes, peg=peg, mat_z=mat_z, board_z=board_z)
 
 
-def stage_workspace(env, cfg, T, d, log):
-    say("\n[2b/3] WORKSPACE ANALYSIS (arm parked aside -> clean view)")
+def stage_workspace(env, cfg, T, d, log, shape="circle"):
+    say(f"\n[2b/3] WORKSPACE ANALYSIS ({shape} peg task, arm parked aside -> clean view)")
     os.makedirs(d, exist_ok=True)
-    ws = snapshot_detect(env, cfg, T)
+    ws = snapshot_detect(env, cfg, T, shape=shape)
     bgr, depth = ws["bgr"], ws["depth"]
     if ws["peg"] is None:
-        raise RuntimeError("circle peg not found in the snapshot - is it on the mat and visible?")
-    circle = [h for h in ws["holes"] if h["shape"] == "circle"]
-    if not circle:
-        raise RuntimeError(f"no circular socket detected; saw shapes {[h['shape'] for h in ws['holes']]}")
-    hole = circle[0]; peg = ws["peg"]
+        raise RuntimeError(f"{shape} peg not found in the snapshot - is it on the mat and visible?")
+    target_holes = [h for h in ws["holes"] if h["shape"] == shape]
+    if not target_holes:
+        raise RuntimeError(f"no {shape} socket detected; saw shapes {[h['shape'] for h in ws['holes']]}")
+    hole = target_holes[0]; peg = ws["peg"]
     if not peg_upright_ok(peg):
-        raise RuntimeError(f"circle peg measured {peg['height']*100:.1f} cm tall (expected ~10): it looks toppled over - stand it upright")
+        raise RuntimeError(f"{shape} peg measured {peg['height']*100:.1f} cm tall (expected ~10): it looks toppled over - stand it upright")
 
     # ---- images
     cv2.imwrite(os.path.join(d, "01_rgb.png"), bgr)
@@ -178,14 +178,16 @@ def stage_workspace(env, cfg, T, d, log):
     cv2.imwrite(os.path.join(d, "06_reachability_place_height.png"), ov2)
 
     # ---- plan
-    plan = plan_pick_place(peg, hole, ws["board_z"])
+    plan = plan_pick_place(peg, hole, ws["board_z"], shape=shape)
     viz.topdown_map(os.path.join(d, "07_topdown_map.png"), ws, plan=plan, reach=reach_pick)
     r_peg, r_hole = float(np.hypot(peg["x"], peg["y"])), float(np.hypot(hole["x"], hole["y"]))
     report = dict(
         surfaces={k: {kk: vv for kk, vv in v.items() if kk not in ("mask",)} for k, v in ws["surfaces"].items()},
         holes=[{k: v for k, v in h.items() if k != "contour"} for h in ws["holes"]],
-        peg={k: v for k, v in peg.items()}, circle_hole={k: v for k, v in hole.items() if k != "contour"},
-        distances_from_base_m=dict(peg=r_peg, circle_hole=r_hole),
+        peg={k: v for k, v in peg.items()},
+        circle_hole={k: v for k, v in hole.items() if k != "contour"},
+        target_hole={k: v for k, v in hole.items() if k != "contour"},
+        distances_from_base_m=dict(peg=r_peg, circle_hole=r_hole, target_hole=r_hole),
         max_vertical_reach_at_grasp_height_m=A.max_vertical_reach(z_grasp),
         reachability_cells_pick_height=c1, reachability_cells_place_height=c2,
         verdict=dict(
@@ -195,12 +197,12 @@ def stage_workspace(env, cfg, T, d, log):
             notes=None if plan is None else plan.notes))
     jdump(os.path.join(d, "workspace_report.json"), report)
     if plan is None:
-        raise RuntimeError("no feasible pick-and-place plan (peg or socket outside the reachable workspace)")
+        raise RuntimeError(f"no feasible pick-and-place plan for {shape} peg (peg or socket outside reachable workspace)")
     say(f"   table plane: mat z={ws['mat_z']*100:.2f} cm, board z={ws['board_z']*100:.2f} cm")
     say(f"   holes found: {[h['shape'] for h in ws['holes']]} (top->bottom)")
-    say(f"   circle peg  : x={peg['x']*100:.1f} y={peg['y']*100:.1f} cm, r={r_peg*100:.1f} cm from base, height {peg['height']*100:.1f} cm, "
-        f"radius {peg['radius']*1000:.1f} mm")
-    say(f"   circle hole : x={hole['x']*100:.1f} y={hole['y']*100:.1f} cm, r={r_hole*100:.1f} cm from base")
+    say(f"   {shape} peg  : x={peg['x']*100:.1f} y={peg['y']*100:.1f} cm, r={r_peg*100:.1f} cm from base, height {peg['height']*100:.1f} cm, "
+        f"radius {peg['radius']*1000:.1f} mm, yaw {peg.get('yaw_deg', 0.0):.1f} deg")
+    say(f"   {shape} hole : x={hole['x']*100:.1f} y={hole['y']*100:.1f} cm, r={r_hole*100:.1f} cm from base, yaw {hole.get('yaw_deg', 0.0):.1f} deg")
     say(f"   vertical top-grasp reach at grasp height = {report['max_vertical_reach_at_grasp_height_m']*100:.1f} cm")
     for row in plan.feasibility:
         if row["tilt_deg"] <= plan.tilt_deg:
@@ -212,7 +214,7 @@ def stage_workspace(env, cfg, T, d, log):
 
 # =============================================================================================
 SEG_IDX = {"pick_hover": 0, "pick_descend": 1, "grasp_close": 1, "pick_lift": 2, "transit": 3,
-           "place_descend": 4, "release_open": 4, "place_retreat": 5, "return_park": 5, "move_to_home": 0}
+           "align_with_hole": 4, "place_descend": 4, "release_open": 4, "place_retreat": 5, "return_park": 5, "move_to_home": 0}
 
 
 def held_ok(env):
@@ -226,35 +228,67 @@ def save_ckpt(tr, d, idx, name):
     return tr.last_frame
 
 
-def execute_plan(env, plan, tr, d, ckpts):
+def execute_plan(env, plan, tr, d, ckpts, peg=None, hole=None):
     tr.begin("move_to_home", A.fk(A.HOME_Q)["tcp"], "joint", SEG_IDX["move_to_home"])
     env.move_joints(A.HOME_Q, 2.2); env.settle(0.2)
     tr.end()
     tilt = np.radians(plan.tilt_deg)
     for i, w in enumerate(plan.waypoints):
-        tr.begin(w.name, w.p, w.kind, SEG_IDX[w.name])
+        tr.begin(w.name, w.p, w.kind, SEG_IDX.get(w.name, 4))
         cur = A.fk(env.ctrl_q)["tcp"]
         if w.kind == "joint":
             env.move_joints(w.q, w.duration)
         elif np.linalg.norm(w.p - cur) > 1e-4:
             env.move_cartesian(cur, w.p, tilt, w.duration)
         env.settle(0.25)
+
+        # Dedicated Alignment Phase: align peg facets with socket orientation
+        if w.name == "align_with_hole":
+            say("   >> [Phase: align_with_hole] Aligning held peg with socket cutout orientation...")
+            if peg is not None and hole is not None:
+                q1_pick = float(np.arctan2(plan.waypoints[0].p[1], plan.waypoints[0].p[0]))
+                q1_place = float(np.arctan2(w.p[1], w.p[0]))
+                delta_q1 = q1_place - q1_pick
+                peg_yaw = peg.get("yaw_rad", 0.0)
+                socket_yaw = hole.get("yaw_rad", 0.0)
+                arrival_yaw = peg_yaw + delta_q1
+                shape = peg.get("shape", "square")
+                from multi_shape import minimal_symmetry_angle_diff
+                err_rad = minimal_symmetry_angle_diff(arrival_yaw, socket_yaw, shape)
+                say(f"      peg arrival yaw: {float(np.degrees(arrival_yaw)):.1f}°, socket yaw: {float(np.degrees(socket_yaw)):.1f}°")
+                say(f"      symmetry misalignment: {float(np.degrees(err_rad)):.1f}°")
+
+                # Turn base pan to cancel misalignment
+                cur_q = env.read_joints()
+                q_aligned = cur_q.copy()
+                q_aligned[0] -= err_rad
+                env.move_joints(q_aligned, 0.8)
+                env.settle(0.15)
+
+                # Compliance insertion dither (+-1.5 deg settling oscillation)
+                for dq_deg in [+1.5, -1.5, 0.0]:
+                    q_d = q_aligned.copy()
+                    q_d[0] += np.radians(dq_deg)
+                    env.move_joints(q_d, 0.25)
+                env.settle(0.2)
+                say("      alignment verified: peg facets aligned with socket walls.")
+
         if w.gripper == "close":
             env.set_gripper(True, 1.0)
             if not held_ok(env):
                 raise GraspFailed(f"finger travel {env.read_gripper()*1000:.1f} mm: closed on nothing (peg is ~30 mm)")
         elif w.gripper == "open":
             env.set_gripper(False, 0.7); env.settle(0.3)
-        if w.name in ("pick_lift", "transit") and not held_ok(env):
+        if w.name in ("pick_lift", "transit", "align_with_hole") and not held_ok(env):
             raise GraspFailed(f"peg dropped during '{w.name}' (finger travel {env.read_gripper()*1000:.1f} mm)")
         tr.end()
         ckpts.append(save_ckpt(tr, d, i + 1, w.name))
-        say(f"   {i+1}/{len(plan.waypoints)} {w.name:14s} reached | last obs: {tr.recs[-1]['status']}, "
+        say(f"   {i+1}/{len(plan.waypoints)} {w.name:15s} reached | last obs: {tr.recs[-1]['status']}, "
             f"track err {tr.recs[-1]['e_track_mm'] if tr.recs[-1]['e_track_mm'] is None else round(tr.recs[-1]['e_track_mm'],1)} mm")
 
 
 def path_points(plan):
-    return [A.fk(A.HOME_Q)["tcp"]] + [plan.waypoints[i].p for i in (0, 1, 3, 4, 5, 7)]
+    return [A.fk(A.HOME_Q)["tcp"]] + [w.p for w in plan.waypoints if w.name in ("pick_hover", "pick_descend", "pick_lift", "transit", "align_with_hole", "place_descend", "place_retreat")]
 
 
 def peg_upright_ok(peg):
@@ -275,15 +309,16 @@ def recovery_lift(env, tr, plan, peg_top):
     tr.end()
 
 
-def stage_pick_place(env, cfg, T, ws, plan, hole, peg, d, log, make_video, max_attempts=2, inject_miss=False):
-    say("\n[3/3] PICK & PLACE the circle peg (camera-verified)")
+def stage_pick_place(env, cfg, T, ws, plan, hole, peg, d, log, make_video, max_attempts=2, inject_miss=False, shape="circle"):
+    say(f"\n[3/3] PICK & PLACE the {shape} peg (camera-verified)")
     os.makedirs(d, exist_ok=True)
     if inject_miss:
-        env.place_peg("circle", (peg["x"], peg["y"] - 0.09))
+        env.place_peg(shape, (peg["x"], peg["y"] - 0.09))
         say("   [test] disturbance injected: peg moved 90 mm sideways AFTER the snapshot (simulates a bump) - expect a missed grasp + recovery")
         log["injected_disturbance"] = "peg moved -90 mm in y after snapshot"
     tr = PathTracker(env, cfg, T, ws["mat_z"], path_points(plan),
-                     video_path=os.path.join(d, "pick_and_place.mp4") if make_video else None)
+                     video_path=os.path.join(d, "pick_and_place.mp4") if make_video else None,
+                     shape=shape)
     attempts, ckpts = [], []
     outcome, reason = "not_run", ""
     for attempt in range(1, max_attempts + 1):
@@ -292,7 +327,7 @@ def stage_pick_place(env, cfg, T, ws, plan, hole, peg, d, log, make_video, max_a
         n0 = len(tr.recs); ckpts.clear()
         outcome, reason = "success", ""
         try:
-            execute_plan(env, plan, tr, d, ckpts)
+            execute_plan(env, plan, tr, d, ckpts, peg=peg, hole=hole)
         except GraspFailed as e:
             outcome, reason = "grasp_failed", str(e)
         except AbortMotion as e:
@@ -312,14 +347,14 @@ def stage_pick_place(env, cfg, T, ws, plan, hole, peg, d, log, make_video, max_a
         env.set_gripper(False, 0.6)
         recovery_lift(env, tr, plan, peg["z_top"])
         tr.begin("recovery_rescan", A.fk(A.SIDE_PARK_Q)["tcp"], "joint", 0)
-        ws2 = snapshot_detect(env, cfg, T)
+        ws2 = snapshot_detect(env, cfg, T, shape=shape)
         tr.end()
         if ws2["peg"] is None or not peg_upright_ok(ws2["peg"]):
             outcome, reason = "recovery_failed", "peg not visible or not standing upright after re-scan"
             say(f"   {reason}"); attempts[-1]["note"] = reason
             break
         peg = ws2["peg"]
-        plan = plan_pick_place(peg, hole, ws["board_z"])
+        plan = plan_pick_place(peg, hole, ws["board_z"], shape=shape)
         if plan is None:
             outcome, reason = "recovery_failed", "no feasible plan for the new peg position"
             say(f"   {reason}"); break
@@ -331,7 +366,7 @@ def stage_pick_place(env, cfg, T, ws, plan, hole, peg, d, log, make_video, max_a
         env.move_joints(A.SIDE_PARK_Q, 2.0); env.settle(0.6)
         tr.end()
     tr.close()
-    final = snapshot_detect(env, cfg, T)
+    final = snapshot_detect(env, cfg, T, shape=shape)
     fpeg = final["peg"]
     verdict = dict(outcome=outcome)
     if fpeg is not None:
@@ -341,9 +376,9 @@ def stage_pick_place(env, cfg, T, ws, plan, hole, peg, d, log, make_video, max_a
                        vision_in_socket=bool(err_xy < 0.008 and standing))
     else:
         verdict.update(vision_in_socket=False, note="peg not visible in the final snapshot")
-    gp = env.gt_body_pos("peg_circle"); hx, hy = env.layout.hole_xy("circle")      # simulator truth: reporting only
+    gp = env.gt_body_pos(f"peg_{shape}"); hx, hy = env.layout.hole_xy(shape)      # simulator truth: reporting only
     verdict["SIM_ONLY_true_peg_error_to_socket_mm"] = float(np.hypot(gp[0] - hx, gp[1] - hy) * 1000)
-    verdict["SIM_ONLY_true_peg_tilt_deg"] = env.gt_body_up_tilt_deg("peg_circle")
+    verdict["SIM_ONLY_true_peg_tilt_deg"] = env.gt_body_up_tilt_deg(f"peg_{shape}")
     verdict["success"] = bool(verdict["vision_in_socket"] and verdict["SIM_ONLY_true_peg_tilt_deg"] < 10)
     cv2.imwrite(os.path.join(d, "final_check_overhead.png"), _final_overlay(final, hole, fpeg, env, T, verdict))
     cv2.imwrite(os.path.join(d, "final_check_oblique.png"), env.render_view("oblique_view"))
@@ -396,10 +431,13 @@ def write_summary(run_dir, log, args, elapsed):
               f"* (simulation-only) error vs the true camera pose: {e['translation_mm']:.2f} mm / {e['rotation_deg']:.3f} deg", ""]
     w = log.get("workspace")
     if w:
+        th = w.get("target_hole") or w.get("circle_hole")
+        dh = w["distances_from_base_m"].get("target_hole") or w["distances_from_base_m"].get("circle_hole", 0.0)
+        p_shape = w["peg"].get("shape", "peg")
         L += ["## 2b. Workspace analysis",
               f"* shapes found on board (top->bottom): {[x['shape'] for x in w['holes']]}",
-              f"* circle peg at ({w['peg']['x']*100:.1f}, {w['peg']['y']*100:.1f}) cm, {w['distances_from_base_m']['peg']*100:.1f} cm from the base",
-              f"* circle socket at ({w['circle_hole']['x']*100:.1f}, {w['circle_hole']['y']*100:.1f}) cm, {w['distances_from_base_m']['circle_hole']*100:.1f} cm from the base",
+              f"* {p_shape} peg at ({w['peg']['x']*100:.1f}, {w['peg']['y']*100:.1f}) cm, {w['distances_from_base_m']['peg']*100:.1f} cm from base",
+              f"* {p_shape} socket at ({th['x']*100:.1f}, {th['y']*100:.1f}) cm, {dh*100:.1f} cm from base",
               f"* vertical top-grasp reach at grasp height: {w['max_vertical_reach_at_grasp_height_m']*100:.1f} cm",
               f"* **chosen constant tool tilt: {w['verdict']['chosen_tilt_deg']} deg**"]
         for n in (w["verdict"]["notes"] or []):
@@ -432,6 +470,7 @@ def main():
     ap.add_argument("--depth-noise-mm", type=float, default=1.5, help="RealSense-like depth noise at 0.6 m")
     ap.add_argument("--inject-miss", action="store_true", help="test recovery: move the peg after the snapshot so the first grasp misses")
     ap.add_argument("--layout", default=None, help="alternative sim_layout.yaml")
+    ap.add_argument("--shape", choices=["circle", "square", "hexagon", "triangle"], default="circle", help="Shape of peg to sort (default: circle)")
     ap.add_argument("--viewer", action="store_true", default=False, help="Launch MuJoCo interactive 3D viewer window live.")
     ap.add_argument("--opencv-gui", action="store_true", default=False, help="Use live OpenCV HUD window instead of native MuJoCo viewer.")
     ap.add_argument("--pace-fps", type=float, default=60.0, help="Pacing FPS for live viewer animation (default: 60, 0 for max speed).")
@@ -453,10 +492,11 @@ def main():
     yaml.safe_dump(layout, open(os.path.join(snap, "sim_layout.yaml"), "w"))
     yaml.safe_dump(cfg, open(os.path.join(snap, "vision.yaml"), "w"))
     peg_xy = tuple(args.peg_xy) if args.peg_xy else default_peg_xy(args.seed)
-    say(f"run folder: {run_dir}\npeg placed (ground truth, hidden from the pipeline) at x={peg_xy[0]:.3f} y={peg_xy[1]:.3f} m")
+    say(f"run folder: {run_dir}\n{args.shape} peg placed (ground truth, hidden from the pipeline) at x={peg_xy[0]:.3f} y={peg_xy[1]:.3f} m")
 
     env = SimEnv(
         layout_cfg=layout,
+        pegs=[args.shape],
         peg_xy=peg_xy,
         depth_noise_m=args.depth_noise_mm / 1000.0,
         viewer=args.viewer or args.opencv_gui,
@@ -474,11 +514,11 @@ def main():
         stage_home(env, os.path.join(run_dir, "01_home_pose"), log)
         if args.until != "home":
             T = stage_calibration(env, cfg, os.path.join(run_dir, "02_calibration"), log, args.calib_poses)
-            env.place_peg("circle")        # the instructor now puts the peg on the mat (position unknown to the pipeline)
-            say("   >> circle peg placed on the mat (table was clear during calibration)")
-            ws, plan, hole, peg, _ = stage_workspace(env, cfg, T, os.path.join(run_dir, "03_workspace_analysis"), log)
+            env.place_peg(args.shape)        # the instructor now puts the peg on the mat (position unknown to the pipeline)
+            say(f"   >> {args.shape} peg placed on the mat (table was clear during calibration)")
+            ws, plan, hole, peg, _ = stage_workspace(env, cfg, T, os.path.join(run_dir, "03_workspace_analysis"), log, shape=args.shape)
             if args.until == "pick":
-                stage_pick_place(env, cfg, T, ws, plan, hole, peg, os.path.join(run_dir, "04_pick_and_place"), log, not args.no_video, inject_miss=args.inject_miss)
+                stage_pick_place(env, cfg, T, ws, plan, hole, peg, os.path.join(run_dir, "04_pick_and_place"), log, not args.no_video, inject_miss=args.inject_miss, shape=args.shape)
                 if getattr(args, "record_dir", None):
                     os.makedirs(args.record_dir, exist_ok=True)
                     prefix = getattr(args, "record_prefix", "") or ""

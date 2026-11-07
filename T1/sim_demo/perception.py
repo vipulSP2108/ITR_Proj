@@ -27,14 +27,16 @@ def _rng(cfg, key):
 def color_masks(bgr, cfg):
     hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
     m = {}
-    for k in ("peg_green", "mat", "board", "marker"):
-        lo, hi = _rng(cfg, k)
-        m[k] = cv2.inRange(hsv, lo, hi)
+    for k in ("peg_green", "peg_blue", "peg_orange", "peg_yellow", "mat", "board", "marker"):
+        if k in cfg.get("hsv", {}):
+            lo, hi = _rng(cfg, k)
+            m[k] = cv2.inRange(hsv, lo, hi)
     la, ha = _rng(cfg, "red_ring_a"); lb, hb = _rng(cfg, "red_ring_b")
     m["red_ring"] = cv2.inRange(hsv, la, ha) | cv2.inRange(hsv, lb, hb)
     k3 = np.ones((3, 3), np.uint8)
-    for k in ("peg_green", "marker"):
-        m[k] = cv2.morphologyEx(m[k], cv2.MORPH_OPEN, k3)
+    for k in ("peg_green", "peg_blue", "peg_orange", "peg_yellow", "marker"):
+        if k in m:
+            m[k] = cv2.morphologyEx(m[k], cv2.MORPH_OPEN, k3)
     return m
 
 
@@ -159,7 +161,7 @@ def detect_marker(bgr, depth, cam, cfg, marker_radius):
 
 
 def detect_holes(bgr, depth, cam, cfg, T_robot_cam, board_z):
-    """Red-outlined sockets -> list of dict(shape, x, y, z, radius, centroid_px). Sorted top->bottom of image."""
+    """Red-outlined sockets -> list of dict(shape, x, y, z, radius, centroid_px, yaw_deg, yaw_rad). Sorted top->bottom of image."""
     red = color_masks(bgr, cfg)["red_ring"]
     red = cv2.morphologyEx(red, cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8))
     cnts, _ = cv2.findContours(red, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
@@ -174,9 +176,26 @@ def detect_holes(bgr, depth, cam, cfg, T_robot_cam, board_z):
         u, v = M["m10"] / M["m00"], M["m01"] / M["m00"]
         x, y = ray_plane_xy(u, v, cam, T_robot_cam, board_z)
         area_m2 = M["m00"] * (cam_depth_at(T_robot_cam, cam, board_z)) ** 2 / (cam.fx * cam.fy)
+
+        # Orientation extraction in robot frame
+        rect = cv2.minAreaRect(c)
+        box_pts = cv2.boxPoints(rect)
+        p0 = np.array(ray_plane_xy(box_pts[0][0], box_pts[0][1], cam, T_robot_cam, board_z))
+        p1 = np.array(ray_plane_xy(box_pts[1][0], box_pts[1][1], cam, T_robot_cam, board_z))
+        edge = p1 - p0
+        yaw_rad = float(np.arctan2(edge[1], edge[0]))
+        if info["shape"] == "square":
+            yaw_rad = float(yaw_rad % (np.pi / 2.0))
+        elif info["shape"] == "hexagon":
+            yaw_rad = float(yaw_rad % (np.pi / 3.0))
+        elif info["shape"] == "triangle":
+            yaw_rad = float(yaw_rad % (2.0 * np.pi / 3.0))
+        yaw_deg = float(np.degrees(yaw_rad))
+
         holes.append(dict(shape=info["shape"], ratio=info["ratio"], vertices=info["vertices"],
                           x=x, y=y, z=board_z, radius=float(np.sqrt(area_m2 / np.pi)),
-                          centroid_px=(float(u), float(v)), contour=c))
+                          centroid_px=(float(u), float(v)), contour=c,
+                          yaw_rad=yaw_rad, yaw_deg=yaw_deg))
     holes.sort(key=lambda h: h["centroid_px"][1])
     return holes
 
@@ -187,13 +206,24 @@ def cam_depth_at(T_robot_cam, cam, plane_z):
     return float((plane_z - o[2]) / d[2])
 
 
-def detect_green_peg(bgr, depth, cam, cfg, T_robot_cam, mat_z, min_top_px=25):
+PEG_COLOR_MAP = {
+    "circle": "peg_green",
+    "square": "peg_blue",
+    "hexagon": "peg_orange",
+    "triangle": "peg_yellow",
+}
+
+
+def detect_peg(bgr, depth, cam, cfg, T_robot_cam, mat_z, shape="circle", min_top_px=25):
     """
-    Circle (green) peg. Uses depth slicing: keep only the pixels within ~12 mm of the highest peg
-    point (its flat top face), so the visible side wall (perspective) does not bias the centre.
-    Returns dict or None (None when the peg is occluded / not visible).
+    Detects target peg (circle, square, etc.) using depth slicing on its top flat face.
+    Computes 3D position (x, y, z_top), height, radius / half-width, and robot-frame yaw.
     """
-    m = color_masks(bgr, cfg)["peg_green"]
+    color_key = PEG_COLOR_MAP.get(shape, "peg_green")
+    masks = color_masks(bgr, cfg)
+    m = masks.get(color_key)
+    if m is None:
+        return None
     bl = blobs(m, cfg["min_blob_px"] // 2)
     if not bl:
         return None
@@ -212,11 +242,38 @@ def detect_green_peg(bgr, depth, cam, cfg, T_robot_cam, mat_z, min_top_px=25):
     info = classify_shape(top_mask, cfg)
     cx, cy = top[:, 0].mean(), top[:, 1].mean()
     area_m2 = keep.sum() * (cam_depth_at(T_robot_cam, cam, z_top)) ** 2 / (cam.fx * cam.fy)
-    return dict(shape=info["shape"], ratio=info["ratio"], x=float(cx), y=float(cy), z_top=z_top,
+
+    # Compute orientation in robot frame
+    cnts, _ = cv2.findContours(top_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    yaw_rad, yaw_deg = 0.0, 0.0
+    if cnts:
+        c_top = max(cnts, key=cv2.contourArea)
+        rect = cv2.minAreaRect(c_top)
+        box_pts = cv2.boxPoints(rect)
+        p0 = np.array(ray_plane_xy(box_pts[0][0], box_pts[0][1], cam, T_robot_cam, z_top))
+        p1 = np.array(ray_plane_xy(box_pts[1][0], box_pts[1][1], cam, T_robot_cam, z_top))
+        edge = p1 - p0
+        yaw_rad = float(np.arctan2(edge[1], edge[0]))
+        if shape == "square":
+            yaw_rad = float(yaw_rad % (np.pi / 2.0))
+        elif shape == "hexagon":
+            yaw_rad = float(yaw_rad % (np.pi / 3.0))
+        elif shape == "triangle":
+            yaw_rad = float(yaw_rad % (2.0 * np.pi / 3.0))
+        yaw_deg = float(np.degrees(yaw_rad))
+
+    return dict(shape=shape, detected_shape=info["shape"], ratio=info["ratio"],
+                x=float(cx), y=float(cy), z_top=z_top,
                 height=float(z_top - mat_z), radius=float(np.sqrt(area_m2 / np.pi)),
                 n_px=int(b["area"]), n_top_px=int(keep.sum()),
                 centroid_px=(float(us[keep].mean()), float(vs[keep].mean())),
+                yaw_rad=yaw_rad, yaw_deg=yaw_deg,
                 visible_fraction=None)
+
+
+def detect_green_peg(bgr, depth, cam, cfg, T_robot_cam, mat_z, min_top_px=25):
+    """Backward-compatible wrapper for circle (green) peg detection."""
+    return detect_peg(bgr, depth, cam, cfg, T_robot_cam, mat_z, shape="circle", min_top_px=min_top_px)
 
 
 def detect_surfaces(bgr, depth, cam, cfg, T_robot_cam):

@@ -11,7 +11,7 @@ import numpy as np
 import cv2
 
 import arm_model as A
-from perception import detect_marker, detect_green_peg, to_robot
+from perception import detect_marker, detect_peg, detect_green_peg, to_robot
 from scene_builder import MARKER_R
 import viz
 
@@ -26,8 +26,9 @@ class AbortMotion(Exception):
 
 
 class PathTracker:
-    def __init__(self, env, cfg, T_robot_cam, mat_z, path_pts, video_path=None, obs_every=2, fps=25.0):
+    def __init__(self, env, cfg, T_robot_cam, mat_z, path_pts, video_path=None, obs_every=2, fps=25.0, shape="circle"):
         self.env, self.cfg, self.T, self.mat_z = env, cfg, T_robot_cam, mat_z
+        self.shape = shape
         self.path_pts = path_pts
         self.every, self.k = obs_every, 0
         self.seg = None
@@ -71,7 +72,7 @@ class PathTracker:
         enc = env.read_joints(); fk = A.fk(enc)
         planned = A.fk(env.ctrl_q)["tcp"]
         det = detect_marker(bgr, depth, env.cam, self.cfg, MARKER_R)
-        peg = detect_green_peg(bgr, depth, env.cam, self.cfg, self.T, self.mat_z)
+        peg = detect_peg(bgr, depth, env.cam, self.cfg, self.T, self.mat_z, shape=self.shape)
         rec = dict(t=env.t, seg=self.seg["name"] if self.seg else "-", marker_seen=det is not None,
                    e_track_mm=None, e_cross_mm=None, progress=None, dir_cos=None, closing=None,
                    status="MARKER_LOST", peg_visible=peg is not None, peg_x=None, peg_y=None, peg_ztop=None,

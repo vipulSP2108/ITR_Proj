@@ -100,9 +100,10 @@ def build_scene_xml(layout_cfg=None, pegs=("circle",), peg_xy=None, seed=7) -> s
     peg_bodies = []
     if peg_xy is None:
         peg_xy = default_peg_xy(seed)
+    primary = pegs[0] if pegs else "circle"
     default_slots = {"circle": peg_xy, "hexagon": (0.13, -0.075), "square": (0.13, 0.075), "triangle": (0.19, 0.0)}
     for name in pegs:
-        px, py = peg_xy if name == "circle" else default_slots[name]
+        px, py = peg_xy if (name == primary) else default_slots.get(name, (0.15, 0.0))
         mat = PEG_COLORS[name]
         fr = 'friction="1.5 0.02 0.002" condim="4" solref="0.004 1" solimp="0.95 0.99 0.001"'
         if name == "circle":

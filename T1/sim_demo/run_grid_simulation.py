@@ -63,7 +63,7 @@ def grid_to_xy(gx: int, gy: int) -> tuple:
     return round(x, 4), round(y, 4)
 
 
-def draw_ascii_grid(peg_gx: int, peg_gy: int, x_m: float, y_m: float):
+def draw_ascii_grid(peg_gx: int, peg_gy: int, x_m: float, y_m: float, shape: str = "circle"):
     """
     Displays an intuitive ASCII map of the workspace (0..11 grid).
     """
@@ -97,8 +97,11 @@ def draw_ascii_grid(peg_gx: int, peg_gy: int, x_m: float, y_m: float):
         print(row_str)
         print("   +---+---+---+---+---+---+---+---+---+---+---+---+")
 
+    socket_names = {"circle": "[O] Circle Socket", "square": "[S] Square Socket",
+                    "hexagon": "[H] Hexagon Socket", "triangle": "[T] Triangle Socket"}
     print("                 [ ROBOT BASE AT (6, 1) (X = 0.0m) ]")
-    print("  Legend: [R] Robot Base  [*] Peg Target  [O] Circle Socket Cutout")
+    print(f"  Target Shape  : {shape.upper()} ({socket_names.get(shape, shape)})")
+    print("  Legend: [R] Robot Base  [*] Peg Target  [O,H,S,T] Shape Sockets")
     print(f"  Selected Grid : ({peg_gx}, {peg_gy})")
     print(f"  Robot Frame   : X = {x_m:.3f} m ({x_m*100:.1f} cm), Y = {y_m:.3f} m ({y_m*100:.1f} cm)")
     print("=" * 63 + "\n")
@@ -130,6 +133,10 @@ def main():
                         help="Seconds to keep viewer window open upon completion (default: 3.0s).")
     parser.add_argument("--record-dir", default=os.path.join(HERE, "..", "demo_runs", "grid_records"),
                         help="Single folder to collect storyboard.png and final_check_overhead.png (default: demo_runs/grid_records).")
+    parser.add_argument("--shape", choices=["circle", "square", "hexagon", "triangle"], default="circle",
+                        help="Shape of peg and matching socket cutout (default: circle)")
+    parser.add_argument("--square", dest="shape", action="store_const", const="square",
+                        help="Convenience shortcut to sort the square peg into square socket")
     parser.add_argument("--no-record", action="store_true", help="Disable copying images to single record folder.")
     parser.add_argument("--no-video", action="store_true", help="Skip MP4 video rendering.")
     parser.add_argument("--until", choices=["home", "workspace", "pick"], default="pick")
@@ -151,13 +158,14 @@ def main():
         x, y = grid_to_xy(gx, gy)
         print(f"  [Random Grid Selection] Picked Grid Cell ({gx}, {gy})")
 
-    # Display 11x11 ASCII Grid Map
-    draw_ascii_grid(gx, gy, x, y)
+    # Display ASCII Grid Map
+    draw_ascii_grid(gx, gy, x, y, shape=args.shape)
 
     # Build command line for run_pipeline.py
     sys.argv = [
         os.path.join(HERE, "run_pipeline.py"),
         "--peg-xy", str(x), str(y),
+        "--shape", args.shape,
         "--until", args.until,
         "--calib-poses", str(args.calib_poses),
         "--linger", str(args.linger)

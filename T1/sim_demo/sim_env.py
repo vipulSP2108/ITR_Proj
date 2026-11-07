@@ -136,18 +136,22 @@ class SimEnv:
         self._apply_ctrl()
         mujoco.mj_forward(self.model, self.data)
         if self.park_peg:
-            self.place_peg("circle", PEG_PARK_XY, z0=0.0)       # table is clear until the 'instructor' places the peg
+            primary = self.pegs[0] if self.pegs else "circle"
+            self.place_peg(primary, PEG_PARK_XY, z0=0.0)       # table is clear until the 'instructor' places the peg
         for _ in range(100):
             mujoco.mj_step(self.model, self.data)
         self.t = 0.0
 
-    def place_peg(self, name="circle", xy=None, z0=MAT_TOP):
+    def place_peg(self, name=None, xy=None, z0=MAT_TOP, yaw_rad=0.0):
         """Teleport a peg upright onto the surface at xy (the 'instructor puts the peg on the mat')."""
+        name = name or (self.pegs[0] if self.pegs else "circle")
         xy = self.peg_target_xy if xy is None else xy
         j = self.model.joint(f"jnt_peg_{name}")
         a, v = j.qposadr[0], j.dofadr[0]
         self.data.qpos[a:a + 3] = [xy[0], xy[1], z0 + self.peg_h / 2 + 0.0005]
-        self.data.qpos[a + 3:a + 7] = [1, 0, 0, 0]
+        cy = np.cos(yaw_rad / 2.0)
+        sy = np.sin(yaw_rad / 2.0)
+        self.data.qpos[a + 3:a + 7] = [cy, 0, 0, sy]
         self.data.qvel[v:v + 6] = 0
         mujoco.mj_forward(self.model, self.data)
         for _ in range(150):

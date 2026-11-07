@@ -64,7 +64,7 @@ def _pt_ok(p, tilt, margin=0.008):
     return True
 
 
-def build_waypoints(peg, hole, board_z, tilt_deg):
+def build_waypoints(peg, hole, board_z, tilt_deg, shape="circle"):
     t = np.radians(tilt_deg)
     px, py, ptop = peg["x"], peg["y"], peg["z_top"]
     z_grasp = ptop - GRASP_DEPTH
@@ -81,6 +81,11 @@ def build_waypoints(peg, hole, board_z, tilt_deg):
         Waypoint("grasp_close",  P(px, py, z_grasp), "line", "close", 0.1),
         Waypoint("pick_lift",    P(px, py, z_carry), "line", None, 1.4),
         Waypoint("transit",      P(hx, hy, z_carry), "line", None, 2.4),
+    ]
+    # For non-circle shapes (square, hexagon, triangle), include dedicated alignment phase
+    if shape != "circle":
+        wps.append(Waypoint("align_with_hole", P(hx, hy, z_place + 0.015), "line", None, 1.2))
+    wps += [
         Waypoint("place_descend", P(hx, hy, z_place), "line", None, 1.6),
         Waypoint("release_open", P(hx, hy, z_place), "line", "open", 0.1),
         Waypoint("place_retreat", P(hx, hy, max(z_carry, board_z + peg["height"] + PLACE_CLEARANCE + RETREAT_CLEAR)), "line", None, 1.6),
@@ -90,12 +95,13 @@ def build_waypoints(peg, hole, board_z, tilt_deg):
     return wps, dict(z_grasp=z_grasp, z_place=z_place, z_carry=z_carry, hold_offset=hold_offset, z_hover=z_hover)
 
 
-def plan_pick_place(peg, hole, board_z) -> Plan:
+def plan_pick_place(peg, hole, board_z, shape=None) -> Plan:
     table = []
     chosen = None
+    target_shape = shape or peg.get("shape", "circle")
     for td in TILTS_DEG:
         t = np.radians(td)
-        wps, z = build_waypoints(peg, hole, board_z, td)
+        wps, z = build_waypoints(peg, hole, board_z, td, shape=target_shape)
         reason = None
         for w in wps:
             if w.q is None or not _pt_ok(w.p, t, margin=0.0 if w.name == 'place_retreat' else 0.008):

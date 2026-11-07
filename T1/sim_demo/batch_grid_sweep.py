@@ -224,6 +224,10 @@ def main():
                         help="Range for forward y (gy) index (default: 0 11)")
     parser.add_argument("--step", type=int, default=1,
                         help="Grid sampling step (default: 1 for all points, 2 for coarse grid)")
+    parser.add_argument("--shape", choices=["circle", "square", "hexagon", "triangle"], default="circle",
+                        help="Shape of peg to sort (default: circle)")
+    parser.add_argument("--square", dest="shape", action="store_const", const="square",
+                        help="Convenience shortcut for square shape")
     parser.add_argument("--viewer", "--live", dest="live", action="store_true", default=True,
                         help="Launch native live MuJoCo 3D viewer for simulation (default: True).")
     parser.add_argument("--no-viewer", "--headless", dest="live", action="store_false",
@@ -293,6 +297,7 @@ def main():
                 python_bin,
                 RUN_GRID_SCRIPT,
                 "--grid", str(gx), str(gy),
+                "--shape", args.shape,
                 "--calib-poses", str(args.calib_poses),
                 "--linger", str(args.linger),
                 "--record-dir", records_dir
