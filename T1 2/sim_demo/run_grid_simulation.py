@@ -128,6 +128,9 @@ def main():
                         help="Number of calibration poses (default: 8 for fast demo, 16 for maximum precision).")
     parser.add_argument("--linger", type=float, default=3.0,
                         help="Seconds to keep viewer window open upon completion (default: 3.0s).")
+    parser.add_argument("--record-dir", default=os.path.join(HERE, "..", "demo_runs", "grid_records"),
+                        help="Single folder to collect storyboard.png and final_check_overhead.png (default: demo_runs/grid_records).")
+    parser.add_argument("--no-record", action="store_true", help="Disable copying images to single record folder.")
     parser.add_argument("--no-video", action="store_true", help="Skip MP4 video rendering.")
     parser.add_argument("--until", choices=["home", "workspace", "pick"], default="pick")
     args = parser.parse_args()
@@ -159,6 +162,11 @@ def main():
         "--calib-poses", str(args.calib_poses),
         "--linger", str(args.linger)
     ]
+    if not args.no_record and args.record_dir:
+        sys.argv.extend([
+            "--record-dir", args.record_dir,
+            "--record-prefix", f"grid_x{gx:02d}_y{gy:02d}_"
+        ])
     if args.viewer and not args.opencv_gui:
         sys.argv.append("--viewer")
     elif args.opencv_gui:

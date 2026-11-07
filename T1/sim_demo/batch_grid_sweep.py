@@ -10,6 +10,11 @@ Live MuJoCo Viewer:
   • By default, launches the live interactive 3D MuJoCo viewer.
   • On macOS, automatically handles Cocoa main-thread requirements via `mjpython`.
 
+Recordings in a Single Folder:
+  • Every run's `storyboard.png` and `final_check_overhead.png` (plus `final_check_oblique.png`)
+    are saved together into a single directory: `<sweep_dir>/records/`
+  • Also generates a visual `index.html` gallery in that single folder.
+
 Usage:
   # Live visual sweep across full 12x12 grid (0..11 x 0..11):
   python3 "T1 2/sim_demo/batch_grid_sweep.py"
@@ -17,8 +22,8 @@ Usage:
   # Live visual sweep on a focused region (e.g. green mat x: 3..9, y: 5..9):
   python3 "T1 2/sim_demo/batch_grid_sweep.py" --x-range 3 9 --y-range 5 9
 
-  # Coarse grid sampling (step=2, 36 cells total):
-  python3 "T1 2/sim_demo/batch_grid_sweep.py" --step 2
+  # Specify a custom single records directory:
+  python3 "T1 2/sim_demo/batch_grid_sweep.py" --record-dir "demo_runs/all_records"
 
   # Headless mode (fast, without live viewer window):
   python3 "T1 2/sim_demo/batch_grid_sweep.py" --headless
@@ -133,6 +138,80 @@ def print_heatmap(grid_results: dict, x_range: list, y_range: list):
     print("=" * 65 + "\n")
 
 
+def generate_html_gallery(records_dir: str, csv_rows: list, sweep_name: str) -> str:
+    """Generates a standalone responsive HTML gallery of all storyboards and final checks."""
+    html_lines = [
+        "<!DOCTYPE html>",
+        "<html lang='en'>",
+        "<head>",
+        "  <meta charset='UTF-8'>",
+        "  <title>MuJoCo Grid Sweep Records Gallery</title>",
+        "  <style>",
+        "    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #121418; color: #e0e0e0; margin: 0; padding: 24px; }",
+        "    h1 { color: #58a6ff; margin-bottom: 4px; }",
+        "    .stats { color: #8b949e; margin-bottom: 24px; font-size: 14px; }",
+        "    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(460px, 1fr)); gap: 20px; }",
+        "    .card { background: #1c2128; border: 1px solid #30363d; border-radius: 8px; padding: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }",
+        "    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 14px; font-weight: bold; }",
+        "    .badge { padding: 3px 8px; border-radius: 4px; font-size: 12px; }",
+        "    .badge-SUCCESS { background: #238636; color: #fff; }",
+        "    .badge-OUT_OF_REACH { background: #d29922; color: #000; }",
+        "    .badge-PEG_NOT_FOUND { background: #484f58; color: #fff; }",
+        "    .badge-FAILED { background: #da3633; color: #fff; }",
+        "    .img-container { display: flex; gap: 10px; }",
+        "    .img-box { flex: 1; text-align: center; }",
+        "    .img-box img { width: 100%; border-radius: 4px; border: 1px solid #30363d; cursor: pointer; transition: transform 0.2s; }",
+        "    .img-box img:hover { transform: scale(1.02); }",
+        "    .caption { font-size: 11px; color: #8b949e; margin-top: 4px; }",
+        "  </style>",
+        "</head>",
+        "<body>",
+        f"  <h1>MuJoCo Grid Sweep Records - {sweep_name}</h1>",
+        f"  <div class='stats'>Total Grid Runs: {len(csv_rows)} | Single Records Directory: <code>{records_dir}</code></div>",
+        "  <div class='grid'>"
+    ]
+
+    for r in csv_rows:
+        gx, gy = r['gx'], r['gy']
+        status = r['status']
+        err = f"{r['error_mm']:.1f} mm" if r.get('error_mm') is not None else "n/a"
+        tilt = f"{r.get('tilt_deg', 'n/a')}°"
+        dur = f"{r.get('duration_s', 0):.1f}s"
+        badge_cls = f"badge-{status}" if status in ["SUCCESS", "OUT_OF_REACH", "PEG_NOT_FOUND"] else "badge-FAILED"
+
+        sb_file = f"grid_x{gx:02d}_y{gy:02d}_storyboard.png"
+        fc_file = f"grid_x{gx:02d}_y{gy:02d}_final_check_overhead.png"
+
+        html_lines.append("    <div class='card'>")
+        html_lines.append(f"      <div class='card-header'><span>Grid ({gx}, {gy}) &bull; X={r['x_m']:.3f}m, Y={r['y_m']:.3f}m</span><span class='badge {badge_cls}'>{status}</span></div>")
+        html_lines.append(f"      <div style='font-size: 12px; color: #8b949e; margin-bottom: 8px;'>Error: <b style='color:#fff;'>{err}</b> | Tilt: <b style='color:#fff;'>{tilt}</b> | Time: {dur}</div>")
+        html_lines.append("      <div class='img-container'>")
+
+        if os.path.exists(os.path.join(records_dir, sb_file)):
+            html_lines.append(f"        <div class='img-box'><a href='{sb_file}' target='_blank'><img src='{sb_file}' alt='Storyboard'></a><div class='caption'>Storyboard (9-steps)</div></div>")
+        else:
+            html_lines.append("        <div class='img-box' style='background:#222; border:1px dashed #444; border-radius:4px; display:flex; align-items:center; justify-content:center; height:120px; color:#666;'>No Storyboard</div>")
+
+        if os.path.exists(os.path.join(records_dir, fc_file)):
+            html_lines.append(f"        <div class='img-box'><a href='{fc_file}' target='_blank'><img src='{fc_file}' alt='Final Check'></a><div class='caption'>Final Check Overhead</div></div>")
+        else:
+            html_lines.append("        <div class='img-box' style='background:#222; border:1px dashed #444; border-radius:4px; display:flex; align-items:center; justify-content:center; height:120px; color:#666;'>No Final Check</div>")
+
+        html_lines.append("      </div>")
+        html_lines.append("    </div>")
+
+    html_lines.extend([
+        "  </div>",
+        "</body>",
+        "</html>"
+    ])
+
+    html_path = os.path.join(records_dir, "index.html")
+    with open(html_path, "w") as f:
+        f.write("\n".join(html_lines) + "\n")
+    return html_path
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Batch sweep runner over OpenMANIPULATOR-X 12x12 grid (x in 0..11, y in 0..11)",
@@ -153,8 +232,12 @@ def main():
                         help="Number of calibration poses per run (default: 6 for speed, min: 6)")
     parser.add_argument("--linger", type=float, default=0.5,
                         help="Seconds to keep 3D viewer open after each run (default: 0.5s)")
-    parser.add_argument("--save-video", action="store_true",
+    parser.add_argument("--record-dir", default=None,
+                        help="Single folder to record storyboard.png and final_check_overhead.png (default: <sweep_dir>/records)")
+    parser.add_argument("--save-video", action="store_true", default=False,
                         help="Save MP4 video recordings for every run (default: False to save disk)")
+    parser.add_argument("--no-video", action="store_true", default=True,
+                        help="Skip MP4 video recordings (default: True)")
     parser.add_argument("--out-dir", default=None,
                         help="Output directory for sweep results JSON/CSV")
     args = parser.parse_args()
@@ -171,6 +254,9 @@ def main():
     sweep_dir = args.out_dir or os.path.join(OUT_DIR, f"sweep_{stamp}")
     os.makedirs(sweep_dir, exist_ok=True)
 
+    records_dir = os.path.abspath(args.record_dir or os.path.join(sweep_dir, "records"))
+    os.makedirs(records_dir, exist_ok=True)
+
     csv_path = os.path.join(sweep_dir, "grid_sweep_results.csv")
     json_path = os.path.join(sweep_dir, "grid_sweep_results.json")
 
@@ -186,6 +272,7 @@ def main():
     print(f"  Grid Range Y (Forward) : {y_min} to {y_max} (step {step}) -> {len(y_vals)} values")
     print(f"  Total Grid Coordinates : {total_runs} combinations")
     print(f"  MuJoCo 3D Viewer       : {'\033[92mLIVE (Interactive 3D Window)\033[0m' if args.live else 'HEADLESS (No Window)'}")
+    print(f"  Single Records Folder  : \033[96m{records_dir}\033[0m")
     print(f"  Calibration Poses      : {args.calib_poses}")
     print(f"  Results Directory      : {sweep_dir}")
     print("=" * 65 + "\n")
@@ -207,7 +294,8 @@ def main():
                 RUN_GRID_SCRIPT,
                 "--grid", str(gx), str(gy),
                 "--calib-poses", str(args.calib_poses),
-                "--linger", str(args.linger)
+                "--linger", str(args.linger),
+                "--record-dir", records_dir
             ]
             if args.live:
                 cmd.append("--viewer")
@@ -255,7 +343,14 @@ def main():
             err_str = f"{err_mm:4.1f} mm" if err_mm is not None else "  n/a  "
             tilt_str = f"{tilt:2d}°" if tilt is not None else "n/a"
 
-            print(f"  -> Outcome: [{status_col:17s}] | Err: {err_str} | Tilt: {tilt_str} | {duration:4.1f}s\n")
+            # Check for saved images in records directory
+            sb_name = f"grid_x{gx:02d}_y{gy:02d}_storyboard.png"
+            fc_name = f"grid_x{gx:02d}_y{gy:02d}_final_check_overhead.png"
+            sb_exists = os.path.exists(os.path.join(records_dir, sb_name))
+            fc_exists = os.path.exists(os.path.join(records_dir, fc_name))
+
+            rec_note = f"[Storyboard: {'YES' if sb_exists else 'NO'} | FinalCheck: {'YES' if fc_exists else 'NO'}]"
+            print(f"  -> Outcome: [{status_col:17s}] | Err: {err_str} | Tilt: {tilt_str} | {rec_note} | {duration:4.1f}s\n")
 
             entry = {
                 "run_idx": run_idx,
@@ -266,24 +361,30 @@ def main():
                 "status": status,
                 "error_mm": err_mm,
                 "tilt_deg": tilt,
+                "storyboard": sb_name if sb_exists else None,
+                "final_check": fc_name if fc_exists else None,
                 "duration_s": duration
             }
             grid_results[(gx, gy)] = entry
             csv_rows.append(entry)
 
-            # Periodically write intermediate results
-            if run_idx % 5 == 0 or run_idx == total_runs:
+            # Periodically write intermediate results and HTML gallery
+            if run_idx % 3 == 0 or run_idx == total_runs:
                 with open(csv_path, "w", newline="") as f:
                     writer = csv.DictWriter(f, fieldnames=list(entry.keys()))
                     writer.writeheader()
                     writer.writerows(csv_rows)
                 with open(json_path, "w") as f:
                     json.dump(csv_rows, f, indent=2)
+                generate_html_gallery(records_dir, csv_rows, f"sweep_{stamp}")
 
     total_time = round(time.time() - t_start, 1)
 
     # Print final summary heatmap
     print_heatmap(grid_results, x_vals, y_vals)
+
+    # Final HTML Gallery generation
+    html_file = generate_html_gallery(records_dir, csv_rows, f"sweep_{stamp}")
 
     # Statistics
     successes = [r for r in csv_rows if r["status"] == "SUCCESS"]
@@ -294,6 +395,9 @@ def main():
     errors = [r["error_mm"] for r in successes if r["error_mm"] is not None]
     durations = [r["duration_s"] for r in successes]
 
+    recorded_sb = sum(1 for r in csv_rows if r["storyboard"])
+    recorded_fc = sum(1 for r in csv_rows if r["final_check"])
+
     print("=" * 65)
     print("                    FINAL SWEEP SUMMARY")
     print("=" * 65)
@@ -302,10 +406,14 @@ def main():
     print(f"  Out of Reach          : {len(out_of_reach)} ({len(out_of_reach)/total_runs*100:.1f}%)")
     print(f"  Off-board / Unseen    : {len(not_found)} ({len(not_found)/total_runs*100:.1f}%)")
     print(f"  Failures              : {len(failures)} ({len(failures)/total_runs*100:.1f}%)")
+    print(f"  Storyboards Recorded  : {recorded_sb} files in single folder")
+    print(f"  Final Checks Recorded : {recorded_fc} files in single folder")
     if errors:
         print(f"  Mean Placement Error  : {np.mean(errors):.2f} mm (min: {np.min(errors):.2f}, max: {np.max(errors):.2f} mm)")
     if durations:
         print(f"  Mean Cycle Duration   : {np.mean(durations):.1f} s")
+    print(f"  Single Records Folder : {records_dir}")
+    print(f"  HTML Visual Gallery   : {html_file}")
     print(f"  Saved CSV Report      : {csv_path}")
     print(f"  Saved JSON Report     : {json_path}")
     print("=" * 65 + "\n")

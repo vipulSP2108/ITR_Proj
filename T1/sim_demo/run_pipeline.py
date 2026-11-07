@@ -436,6 +436,8 @@ def main():
     ap.add_argument("--opencv-gui", action="store_true", default=False, help="Use live OpenCV HUD window instead of native MuJoCo viewer.")
     ap.add_argument("--pace-fps", type=float, default=60.0, help="Pacing FPS for live viewer animation (default: 60, 0 for max speed).")
     ap.add_argument("--linger", type=float, default=3.0, help="Seconds to keep viewer window open upon completion (default: 3.0s).")
+    ap.add_argument("--record-dir", default=None, help="Directory to save a standardized copy of storyboard.png and final_check_overhead.png.")
+    ap.add_argument("--record-prefix", default="", help="Prefix for recorded files (e.g. 'grid_x04_y07_').")
     args = ap.parse_args()
 
     t0 = time.time()
@@ -477,6 +479,24 @@ def main():
             ws, plan, hole, peg, _ = stage_workspace(env, cfg, T, os.path.join(run_dir, "03_workspace_analysis"), log)
             if args.until == "pick":
                 stage_pick_place(env, cfg, T, ws, plan, hole, peg, os.path.join(run_dir, "04_pick_and_place"), log, not args.no_video, inject_miss=args.inject_miss)
+                if getattr(args, "record_dir", None):
+                    os.makedirs(args.record_dir, exist_ok=True)
+                    prefix = getattr(args, "record_prefix", "") or ""
+                    pick_dir = os.path.join(run_dir, "04_pick_and_place")
+                    src_sb = os.path.join(pick_dir, "storyboard.png")
+                    src_fc = os.path.join(pick_dir, "final_check_overhead.png")
+                    src_ob = os.path.join(pick_dir, "final_check_oblique.png")
+                    if os.path.exists(src_sb):
+                        dst_sb = os.path.join(args.record_dir, f"{prefix}storyboard.png")
+                        shutil.copyfile(src_sb, dst_sb)
+                        say(f"   [Single Folder Record] storyboard -> {dst_sb}")
+                    if os.path.exists(src_fc):
+                        dst_fc = os.path.join(args.record_dir, f"{prefix}final_check_overhead.png")
+                        shutil.copyfile(src_fc, dst_fc)
+                        say(f"   [Single Folder Record] final_check_overhead -> {dst_fc}")
+                    if os.path.exists(src_ob):
+                        dst_ob = os.path.join(args.record_dir, f"{prefix}final_check_oblique.png")
+                        shutil.copyfile(src_ob, dst_ob)
     finally:
         jdump(os.path.join(run_dir, "run_log.json"), log)
         write_summary(run_dir, log, args, time.time() - t0)
