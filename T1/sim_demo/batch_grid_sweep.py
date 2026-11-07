@@ -4,24 +4,38 @@ Batch Grid Sweep Runner for OpenMANIPULATOR-X Simulation.
 
 Iterates over discrete grid coordinates x in [0..11] and y in [0..11] (144 cells total),
 invoking `run_grid_simulation.py --grid {x} {y}` for each coordinate, tracking reachability,
-cycle timing, and placement precision.
+cycle timing, and placement precision live in MuJoCo.
+
+Live MuJoCo Viewer:
+  • By default, launches the live interactive 3D MuJoCo viewer.
+  • On macOS, automatically handles Cocoa main-thread requirements via `mjpython`.
 
 Usage:
-  # Fast headless sweep over full 12x12 grid (0..11 x 0..11):
+  # Live visual sweep across full 12x12 grid (0..11 x 0..11):
   python3 "T1 2/sim_demo/batch_grid_sweep.py"
 
-  # Quick coarse sweep with step=2 (every second cell: 6x6 = 36 cells):
+  # Live visual sweep on a focused region (e.g. green mat x: 3..9, y: 5..9):
+  python3 "T1 2/sim_demo/batch_grid_sweep.py" --x-range 3 9 --y-range 5 9
+
+  # Coarse grid sampling (step=2, 36 cells total):
   python3 "T1 2/sim_demo/batch_grid_sweep.py" --step 2
 
-  # Focused sweep over the reachable green mat area (x: 3..9, y: 4..9):
-  python3 "T1 2/sim_demo/batch_grid_sweep.py" --x-range 3 9 --y-range 4 9
-
-  # Watch each run live in the native MuJoCo 3D viewer:
-  python3 "T1 2/sim_demo/batch_grid_sweep.py" --live
+  # Headless mode (fast, without live viewer window):
+  python3 "T1 2/sim_demo/batch_grid_sweep.py" --headless
 """
 
 import os
 import sys
+import shutil
+
+# Seamless auto-dispatch to mjpython on macOS for native Cocoa 3D viewer
+if sys.platform == "darwin" and os.environ.get("MJPYTHON_LAUNCHED") != "1":
+    if "--no-viewer" not in sys.argv and "--headless" not in sys.argv:
+        mjpython = shutil.which("mjpython")
+        if mjpython and os.path.exists(mjpython):
+            os.environ["MJPYTHON_LAUNCHED"] = "1"
+            os.execv(mjpython, [mjpython] + sys.argv)
+
 import time
 import json
 import csv
@@ -64,7 +78,6 @@ def parse_output(stdout_str: str) -> dict:
     elif "FAILED" in stdout_str or "RuntimeError" in stdout_str:
         res["status"] = "FAILED"
 
-    # Search for peg-to-socket error
     for line in stdout_str.splitlines():
         if "peg-to-socket error (vision)" in line:
             parts = line.split("peg-to-socket error (vision)")
@@ -132,10 +145,14 @@ def main():
                         help="Range for forward y (gy) index (default: 0 11)")
     parser.add_argument("--step", type=int, default=1,
                         help="Grid sampling step (default: 1 for all points, 2 for coarse grid)")
-    parser.add_argument("--live", action="store_true",
-                        help="Launch native live MuJoCo 3D viewer for each run (slower, visual)")
+    parser.add_argument("--viewer", "--live", dest="live", action="store_true", default=True,
+                        help="Launch native live MuJoCo 3D viewer for simulation (default: True).")
+    parser.add_argument("--no-viewer", "--headless", dest="live", action="store_false",
+                        help="Disable live viewer window for fast headless execution.")
     parser.add_argument("--calib-poses", type=int, default=6,
                         help="Number of calibration poses per run (default: 6 for speed, min: 6)")
+    parser.add_argument("--linger", type=float, default=0.5,
+                        help="Seconds to keep 3D viewer open after each run (default: 0.5s)")
     parser.add_argument("--save-video", action="store_true",
                         help="Save MP4 video recordings for every run (default: False to save disk)")
     parser.add_argument("--out-dir", default=None,
@@ -157,13 +174,18 @@ def main():
     csv_path = os.path.join(sweep_dir, "grid_sweep_results.csv")
     json_path = os.path.join(sweep_dir, "grid_sweep_results.json")
 
+    # Determine Python executable
+    python_bin = shutil.which("mjpython") if (sys.platform == "darwin" and args.live) else sys.executable
+    if not python_bin:
+        python_bin = sys.executable
+
     print("\n" + "=" * 65)
     print("      OPENMANIPULATOR-X BATCH GRID SWEEP RUNNER")
     print("=" * 65)
     print(f"  Grid Range X (Lateral) : {x_min} to {x_max} (step {step}) -> {len(x_vals)} values")
     print(f"  Grid Range Y (Forward) : {y_min} to {y_max} (step {step}) -> {len(y_vals)} values")
     print(f"  Total Grid Coordinates : {total_runs} combinations")
-    print(f"  Live Viewer            : {'ENABLED' if args.live else 'HEADLESS (Fast)'}")
+    print(f"  MuJoCo 3D Viewer       : {'\033[92mLIVE (Interactive 3D Window)\033[0m' if args.live else 'HEADLESS (No Window)'}")
     print(f"  Calibration Poses      : {args.calib_poses}")
     print(f"  Results Directory      : {sweep_dir}")
     print("=" * 65 + "\n")
@@ -173,27 +195,47 @@ def main():
     run_idx = 0
     t_start = time.time()
 
+    child_env = os.environ.copy()
+    child_env["MJPYTHON_LAUNCHED"] = "1"
+
     for gy in y_vals:
         for gx in x_vals:
             run_idx += 1
             x_m, y_m = grid_to_xy(gx, gy)
             cmd = [
-                sys.executable,
+                python_bin,
                 RUN_GRID_SCRIPT,
                 "--grid", str(gx), str(gy),
                 "--calib-poses", str(args.calib_poses),
-                "--linger", "0.5"
+                "--linger", str(args.linger)
             ]
-            if not args.live:
+            if args.live:
+                cmd.append("--viewer")
+            else:
                 cmd.append("--headless")
             if not args.save_video:
                 cmd.append("--no-video")
 
             t0 = time.time()
+            print(f"[{run_idx:3d}/{total_runs:3d}] Starting Grid ({gx:2d}, {gy:2d}) -> X={x_m:6.3f}m, Y={y_m:6.3f}m ...")
             try:
-                proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=120)
-                stdout = proc.stdout
+                proc = subprocess.Popen(
+                    cmd,
+                    env=child_env,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True
+                )
+                stdout_lines = []
+                for line in proc.stdout:
+                    stdout_lines.append(line)
+                    line_s = line.strip()
+                    if any(k in line_s for k in ["[1/3]", "[2a/3]", "[2b/3]", "[3/3]", "reached |", "attempt 1 ->"]):
+                        print(f"     | {line_s}")
+                proc.wait(timeout=120)
+                stdout = "".join(stdout_lines)
             except subprocess.TimeoutExpired:
+                proc.kill()
                 stdout = "TIMEOUT after 120s"
             duration = round(time.time() - t0, 1)
 
@@ -202,7 +244,6 @@ def main():
             err_mm = parsed["error_mm"]
             tilt = parsed["tilt_deg"]
 
-            # Format status printout
             status_col = {
                 "SUCCESS": "\033[92mSUCCESS\033[0m",
                 "OUT_OF_REACH": "\033[93mOUT_OF_REACH\033[0m",
@@ -214,8 +255,7 @@ def main():
             err_str = f"{err_mm:4.1f} mm" if err_mm is not None else "  n/a  "
             tilt_str = f"{tilt:2d}°" if tilt is not None else "n/a"
 
-            print(f"[{run_idx:3d}/{total_runs:3d}] Grid ({gx:2d}, {gy:2d}) -> X={x_m:6.3f}m, Y={y_m:6.3f}m | "
-                  f"[{status_col:17s}] | Err: {err_str} | Tilt: {tilt_str} | {duration:4.1f}s")
+            print(f"  -> Outcome: [{status_col:17s}] | Err: {err_str} | Tilt: {tilt_str} | {duration:4.1f}s\n")
 
             entry = {
                 "run_idx": run_idx,
