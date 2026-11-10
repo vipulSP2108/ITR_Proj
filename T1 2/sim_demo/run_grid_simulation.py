@@ -139,6 +139,8 @@ def main():
                         help="Convenience shortcut to sort the square peg into square socket")
     parser.add_argument("--no-record", action="store_true", help="Disable copying images to single record folder.")
     parser.add_argument("--no-video", action="store_true", help="Skip MP4 video rendering.")
+    parser.add_argument("--pause-for-peg", action="store_true", default=False,
+                        help="Pause when arm parks in SIDE_PARK position and wait for operator before placing peg.")
     parser.add_argument("--until", choices=["home", "workspace", "pick"], default="pick")
     args = parser.parse_args()
 
@@ -181,6 +183,8 @@ def main():
         sys.argv.append("--opencv-gui")
     if args.no_video:
         sys.argv.append("--no-video")
+    if args.pause_for_peg:
+        sys.argv.append("--pause-for-peg")
 
     # Execute simulation
     run_pipeline_main()

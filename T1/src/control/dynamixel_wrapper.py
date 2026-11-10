@@ -94,13 +94,14 @@ class OpenManipulatorController:
         print(f"[Success] Connected to U2D2 at {self.port_name} ({self.baudrate} bps)")
         return True
 
-    def disconnect(self):
-        """Disables torque on all motors and closes the serial port."""
+    def disconnect(self, disable_torque: bool = False):
+        """Closes the serial port. Keeps torque enabled by default to prevent arm falling."""
         if self.is_connected and self.port_handler:
-            self.disable_all_torque()
+            if disable_torque:
+                self.disable_all_torque()
             self.port_handler.closePort()
             self.is_connected = False
-            print("[Info] Disconnected from U2D2.")
+            print("[Info] Disconnected from U2D2 (holding torque maintained).")
 
     def ping_motor(self, dxl_id: int) -> Tuple[bool, Optional[int]]:
         """Pings a specific motor ID. Returns (success, model_number)."""
@@ -150,14 +151,12 @@ class OpenManipulatorController:
 
         print("[Init] Configuring joint operating modes and velocity profiles...")
         for dxl_id in JOINT_IDS.keys():
-            # Torque must be OFF to change operating mode
-            self.disable_torque(dxl_id)
-            # Joint 11 benefits from Extended Position mode (multi-turn), others use standard Position mode
-            mode = 4 if dxl_id == 11 else 3
-            self.set_operating_mode(dxl_id, mode)
-            # Set velocity and acceleration profiles
+            target_mode = 4 if dxl_id == 11 else 3
+            cur_mode, res, _ = self.packet_handler.read1ByteTxRx(self.port_handler, dxl_id, ADDR_OPERATING_MODE)
+            if res != COMM_SUCCESS or cur_mode != target_mode:
+                self.disable_torque(dxl_id)
+                self.set_operating_mode(dxl_id, target_mode)
             self.set_speed_and_accel(dxl_id, profile_velocity=profile_vel, profile_accel=profile_acc)
-            # Enable torque
             self.enable_torque(dxl_id)
 
         print("[Init] All 5 joints initialized in Position Control Mode with Torque ENABLED.")
@@ -199,8 +198,11 @@ class OpenManipulatorController:
         """Writes target raw position (0 ~ 4095) with hardware safety boundary check."""
         if not self.is_connected:
             return False
-        # Clamp to safe encoder range
-        goal_position = max(0, min(4095, goal_position))
+        # For base pan (multi-turn), wrap to [0, 4095]
+        if dxl_id == 11:
+            goal_position = goal_position % 4096
+        else:
+            goal_position = max(0, min(4095, goal_position))
         res, err = self.packet_handler.write4ByteTxRx(
             self.port_handler, dxl_id, ADDR_GOAL_POSITION, goal_position
         )

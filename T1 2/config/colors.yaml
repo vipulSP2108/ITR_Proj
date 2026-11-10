@@ -14,7 +14,7 @@ colors:
     bgr: [127, 62, 3]
     shape: "square"
 
-  orange_red: # Hexagon Peg
+  red: # Hexagon / Red Peg
     lower1: [0, 85, 90]
     upper1: [12, 255, 255]
     lower2: [170, 85, 90]

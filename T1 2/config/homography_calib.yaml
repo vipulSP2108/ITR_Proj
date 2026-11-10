@@ -1,0 +1,39 @@
+calibrated_at: '2026-11-09 13:40:00'
+calibration_pairs:
+- pixel_u: 375.0
+  pixel_v: 280.0
+  residual_error_mm: 0.12
+  robot_x_mm: 150.3
+  robot_y_mm: 88.8
+  stance: Stance_1_Near_Mat
+- pixel_u: 320.0
+  pixel_v: 280.0
+  residual_error_mm: 0.14
+  robot_x_mm: 225.4
+  robot_y_mm: 88.8
+  stance: Stance_2_Far_Mat
+- pixel_u: 320.0
+  pixel_v: 150.0
+  residual_error_mm: 0.14
+  robot_x_mm: 225.4
+  robot_y_mm: -88.8
+  stance: Stance_3_Near_Board
+- pixel_u: 348.0
+  pixel_v: 215.0
+  residual_error_mm: 0.08
+  robot_x_mm: 187.1
+  robot_y_mm: 0.0
+  stance: Stance_4_Center_Table
+homography_matrix_3x3:
+- - -1.21741524
+  - 0.11786673
+  - 527.414731
+- - -0.10779674
+  - 0.98905666
+  - -175.133917
+- - -0.00121393
+  - 0.00052292
+  - 1.0
+num_stances: 4
+rmse_mm: 0.12
+base_frame_offset: 2048

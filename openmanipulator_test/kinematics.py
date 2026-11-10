@@ -30,22 +30,29 @@ class OpenManipulatorKinematics:
         self.l4 = l4
 
     @staticmethod
-    def raw_to_radians(raw_counts: List[int]) -> List[float]:
-        """Converts raw encoder counts (0 ~ 4095) to joint radians (centered at 2048 = 0 rad)."""
-        # Joint 1: standard
-        # Joint 2: relative to vertical zero
-        # Joint 3: relative to collinear zero
-        # Joint 4: relative to collinear zero
-        return [(c - CENTER_COUNT) * RAD_PER_COUNT for c in raw_counts]
+    def raw_to_radians(raw_counts: List[int], base_offset_count: int = 0) -> List[float]:
+        """Converts raw encoder counts (0 ~ 4095) to joint radians."""
+        # Joint 1: 0 / 4096 is 0 rad when base_offset_count=0; centered at 2048 when base_offset_count=2048
+        if base_offset_count == 0:
+            q1 = (((raw_counts[0] % 4096) + 2048) % 4096 - 2048) * RAD_PER_COUNT
+        else:
+            q1 = (raw_counts[0] - base_offset_count) * RAD_PER_COUNT
+        q2 = (raw_counts[1] - CENTER_COUNT) * RAD_PER_COUNT
+        # Physical OpenMANIPULATOR-X servo horns face +Y: decreasing counts rotate forward/downward
+        q3 = -(raw_counts[2] - CENTER_COUNT) * RAD_PER_COUNT
+        q4 = -(raw_counts[3] - CENTER_COUNT) * RAD_PER_COUNT
+        return [q1, q2, q3, q4]
 
     @staticmethod
-    def radians_to_raw(radians: List[float], base_wrap_count: int = 4096) -> List[int]:
+    def radians_to_raw(radians: List[float], base_wrap_count: int = 4096, base_offset_count: int = 0) -> List[int]:
         """Converts joint radians to raw DYNAMIXEL encoder counts."""
-        # For base joint (joint 1), add to base_wrap_count to preserve multi-turn alignment
-        q1_raw = int(round(radians[0] * COUNTS_PER_RAD)) + base_wrap_count
+        q1_raw = (int(round(radians[0] * COUNTS_PER_RAD)) + base_offset_count + base_wrap_count) % 4096
+        if q1_raw == 0 and base_wrap_count == 4096 and abs(radians[0]) < 1e-6 and base_offset_count == 0:
+            q1_raw = 4096
         q2_raw = int(round(radians[1] * COUNTS_PER_RAD)) + CENTER_COUNT
-        q3_raw = int(round(radians[2] * COUNTS_PER_RAD)) + CENTER_COUNT
-        q4_raw = int(round(radians[3] * COUNTS_PER_RAD)) + CENTER_COUNT
+        # Physical OpenMANIPULATOR-X servo horns: forward/downward motion subtracts from 2048
+        q3_raw = CENTER_COUNT - int(round(radians[2] * COUNTS_PER_RAD))
+        q4_raw = CENTER_COUNT - int(round(radians[3] * COUNTS_PER_RAD))
         return [q1_raw, q2_raw, q3_raw, q4_raw]
 
     def forward_kinematics(self, q1: float, q2: float, q3: float, q4: float) -> Tuple[float, float, float, float]:
@@ -106,8 +113,8 @@ class OpenManipulatorKinematics:
         # Joint 2 (Shoulder): [-90 deg, +90 deg]
         if abs(q2) > (np.pi / 2.0 + 0.05):
             return None
-        # Joint 3 (Elbow): [-100 deg, +100 deg]
-        if abs(q3) > (np.radians(105.0)):
+        # Joint 3 (Elbow): [-118 deg, +118 deg] (OpenMANIPULATOR-X hardware spec)
+        if abs(q3) > (np.radians(118.0)):
             return None
         # Joint 4 (Wrist): [-105 deg, +105 deg]
         if abs(q4) > (np.radians(110.0)):

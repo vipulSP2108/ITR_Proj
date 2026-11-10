@@ -39,10 +39,9 @@ class OpenManipulatorKinematics:
         return [(c - CENTER_COUNT) * RAD_PER_COUNT for c in raw_counts]
 
     @staticmethod
-    def radians_to_raw(radians: List[float], base_wrap_count: int = 2048) -> List[int]:
-        """Converts joint radians to raw DYNAMIXEL encoder counts (centered at 2048 = 0 rad)."""
-        # For base joint (joint 1), add to base_wrap_count (2048 +/- k*4096)
-        q1_raw = int(round(radians[0] * COUNTS_PER_RAD)) + base_wrap_count
+    def radians_to_raw(radians: List[float], base_wrap_count: int = 4096) -> List[int]:
+        """Converts joint radians to raw DYNAMIXEL encoder counts."""
+        q1_raw = (int(round(radians[0] * COUNTS_PER_RAD)) + base_wrap_count) % 4096
         q2_raw = int(round(radians[1] * COUNTS_PER_RAD)) + CENTER_COUNT
         q3_raw = int(round(radians[2] * COUNTS_PER_RAD)) + CENTER_COUNT
         q4_raw = int(round(radians[3] * COUNTS_PER_RAD)) + CENTER_COUNT
@@ -106,8 +105,8 @@ class OpenManipulatorKinematics:
         # Joint 2 (Shoulder): [-90 deg, +90 deg]
         if abs(q2) > (np.pi / 2.0 + 0.05):
             return None
-        # Joint 3 (Elbow): [-100 deg, +100 deg]
-        if abs(q3) > (np.radians(105.0)):
+        # Joint 3 (Elbow): [-118 deg, +118 deg] (OpenMANIPULATOR-X hardware spec)
+        if abs(q3) > (np.radians(118.0)):
             return None
         # Joint 4 (Wrist): [-105 deg, +105 deg]
         if abs(q4) > (np.radians(110.0)):

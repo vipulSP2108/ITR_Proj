@@ -477,6 +477,7 @@ def main():
     ap.add_argument("--linger", type=float, default=3.0, help="Seconds to keep viewer window open upon completion (default: 3.0s).")
     ap.add_argument("--record-dir", default=None, help="Directory to save a standardized copy of storyboard.png and final_check_overhead.png.")
     ap.add_argument("--record-prefix", default="", help="Prefix for recorded files (e.g. 'grid_x04_y07_').")
+    ap.add_argument("--pause-for-peg", action="store_true", default=False, help="Pause when arm reaches SIDE_PARK position and wait for operator before placing peg.")
     args = ap.parse_args()
 
     t0 = time.time()
@@ -514,8 +515,14 @@ def main():
         stage_home(env, os.path.join(run_dir, "01_home_pose"), log)
         if args.until != "home":
             T = stage_calibration(env, cfg, os.path.join(run_dir, "02_calibration"), log, args.calib_poses)
+            # Move arm aside to clean Side Park position (pan -90 deg, zero tabletop occlusion)
+            env.move_joints(A.SIDE_PARK_Q, 1.8)
+            env.settle(0.6)
+            say("   >> Arm parked aside in SIDE_PARK position (table 100% clear)")
+            if getattr(args, "pause_for_peg", False):
+                input("\n   [WAITING] Robot is in SIDE_PARK position. Place the peg on the mat and press [ENTER] to proceed... ")
             env.place_peg(args.shape)        # the instructor now puts the peg on the mat (position unknown to the pipeline)
-            say(f"   >> {args.shape} peg placed on the mat (table was clear during calibration)")
+            say(f"   >> {args.shape} peg placed on the mat (ready for workspace analysis & pick-and-place)")
             ws, plan, hole, peg, _ = stage_workspace(env, cfg, T, os.path.join(run_dir, "03_workspace_analysis"), log, shape=args.shape)
             if args.until == "pick":
                 stage_pick_place(env, cfg, T, ws, plan, hole, peg, os.path.join(run_dir, "04_pick_and_place"), log, not args.no_video, inject_miss=args.inject_miss, shape=args.shape)

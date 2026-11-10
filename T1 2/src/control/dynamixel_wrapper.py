@@ -94,13 +94,14 @@ class OpenManipulatorController:
         print(f"[Success] Connected to U2D2 at {self.port_name} ({self.baudrate} bps)")
         return True
 
-    def disconnect(self):
-        """Disables torque on all motors and closes the serial port."""
+    def disconnect(self, disable_torque: bool = False):
+        """Closes the serial port. Keeps torque enabled by default to prevent arm falling."""
         if self.is_connected and self.port_handler:
-            self.disable_all_torque()
+            if disable_torque:
+                self.disable_all_torque()
             self.port_handler.closePort()
             self.is_connected = False
-            print("[Info] Disconnected from U2D2.")
+            print("[Info] Disconnected from U2D2 (holding torque maintained).")
 
     def ping_motor(self, dxl_id: int) -> Tuple[bool, Optional[int]]:
         """Pings a specific motor ID. Returns (success, model_number)."""
@@ -112,13 +113,15 @@ class OpenManipulatorController:
         return False, None
 
     def read_position(self, dxl_id: int) -> Optional[int]:
-        """Reads current position in raw encoder units (0 ~ 4095)."""
+        """Reads current position in raw encoder units."""
         if not self.is_connected:
             return None
         pos, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(
             self.port_handler, dxl_id, ADDR_PRESENT_POSITION
         )
         if dxl_comm_result == COMM_SUCCESS:
+            if dxl_id == 11 and pos >= 0x80000000:
+                pos -= 0x100000000
             return pos
         return None
 
@@ -128,6 +131,19 @@ class OpenManipulatorController:
         if raw is not None:
             # 2048 is centered (0 deg), -180 deg to +180 deg
             return (raw - 2048) * POSITION_UNIT_TO_DEG
+        return None
+
+    def read_load(self, dxl_id: int) -> Optional[float]:
+        """Reads current load as signed percentage (-100.0% to +100.0%)."""
+        if not self.is_connected:
+            return None
+        load_raw, dxl_comm_result, _ = self.packet_handler.read2ByteTxRx(
+            self.port_handler, dxl_id, ADDR_PRESENT_LOAD
+        )
+        if dxl_comm_result == COMM_SUCCESS:
+            if load_raw >= 0x8000:
+                load_raw -= 0x10000
+            return round(load_raw * 0.1, 1)  # 0.1% unit
         return None
 
     def set_operating_mode(self, dxl_id: int, mode: int) -> bool:
@@ -150,14 +166,12 @@ class OpenManipulatorController:
 
         print("[Init] Configuring joint operating modes and velocity profiles...")
         for dxl_id in JOINT_IDS.keys():
-            # Torque must be OFF to change operating mode
-            self.disable_torque(dxl_id)
-            # Joint 11 benefits from Extended Position mode (multi-turn), others use standard Position mode
-            mode = 4 if dxl_id == 11 else 3
-            self.set_operating_mode(dxl_id, mode)
-            # Set velocity and acceleration profiles
+            target_mode = 4 if dxl_id == 11 else 3
+            cur_mode, res, _ = self.packet_handler.read1ByteTxRx(self.port_handler, dxl_id, ADDR_OPERATING_MODE)
+            if res != COMM_SUCCESS or cur_mode != target_mode:
+                self.disable_torque(dxl_id)
+                self.set_operating_mode(dxl_id, target_mode)
             self.set_speed_and_accel(dxl_id, profile_velocity=profile_vel, profile_accel=profile_acc)
-            # Enable torque
             self.enable_torque(dxl_id)
 
         print("[Init] All 5 joints initialized in Position Control Mode with Torque ENABLED.")
@@ -196,13 +210,18 @@ class OpenManipulatorController:
             self.disable_torque(dxl_id)
 
     def write_position(self, dxl_id: int, goal_position: int) -> bool:
-        """Writes target raw position (0 ~ 4095) with hardware safety boundary check."""
+        """Writes target raw position with hardware safety boundary check."""
         if not self.is_connected:
             return False
-        # Clamp to safe encoder range
-        goal_position = max(0, min(4095, goal_position))
+        if dxl_id == 11:
+            # Allow signed 32-bit position for multi-turn mode 4, bounded to safe +/- 3000 counts (+/- 263 deg)
+            goal_position = max(-3000, min(3000, int(round(goal_position))))
+            val_to_write = goal_position & 0xFFFFFFFF
+        else:
+            goal_position = max(0, min(4095, int(round(goal_position))))
+            val_to_write = goal_position
         res, err = self.packet_handler.write4ByteTxRx(
-            self.port_handler, dxl_id, ADDR_GOAL_POSITION, goal_position
+            self.port_handler, dxl_id, ADDR_GOAL_POSITION, val_to_write
         )
         return res == COMM_SUCCESS
 
