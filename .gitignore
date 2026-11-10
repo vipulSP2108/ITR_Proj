@@ -22,6 +22,11 @@ live_camera.jpg
 *.avi
 imp_images/
 */imp_images/
+audio_data/
+*/audio_data/
+*.wav
+*.mp3
+*.m4a
 
 # Scratch debug images at repository root
 /*.jpg
