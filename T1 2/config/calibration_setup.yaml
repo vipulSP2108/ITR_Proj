@@ -1,0 +1,15 @@
+# Inputs of calibration/01_calibrate_camera_robot.py. Change them here, not in the script.
+# These are the robot-frame test positions the ARM visits while calibrating (the arm's own
+# coordinates - they do not depend on where the camera, mat or board are).
+
+marker_side_mm: 38.0              # printed ArUco marker side, measured with a ruler
+table_z_mm: 22.0                  # mat surface in robot z; re-measure with:  01_calibrate_camera_robot.py --probe
+probe_xy_mm: [150.0, 0.0]         # where --probe touches the mat (must be bare mat)
+
+fingertip_planes_above_table_mm: [45.0, 125.0]   # the fingertip visits the grid at these two heights (never lower)
+grid_x_mm: [120, 170, 220, 270]                  # distance in front of the base
+grid_y_mm: [-110, -55, 0, 55, 110]               # left / right of the base
+tool_tilts_deg: [30.0, 55.0]                     # alternated over the grid
+
+nominal_fingertip_len_mm: 140.0   # starting guess, refined by the solver
+nominal_focal_px: 900.0           # starting guess for the 1280x720 colour stream, refined by the solver

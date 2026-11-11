@@ -1,0 +1,14 @@
+# Fixed task objects (measured by the team, 2026-11-10). These never change - every script
+# reads them from here, nothing is hard-coded elsewhere.
+workspace: "everything (pegs and hole board) sits on the green foam mat in front of the robot"
+
+peg_height_mm: 100.0            # ALL pegs are 10 cm tall
+pegs:
+  circle:   {colour: green,  diameter_mm: 40.0, across_mm: 40.0, symmetry_deg: 0}     # 4 cm diameter
+  square:   {colour: blue,   side_mm: 40.0,     across_mm: 56.6, symmetry_deg: 90}    # 4 cm side
+  triangle: {colour: yellow, side_mm: 33.0,     across_mm: 38.1, symmetry_deg: 120}   # 3.3 cm side
+  hexagon:  {colour: orange,   side_mm: 20.0,     across_mm: 40.0, symmetry_deg: 60}    # 2 cm side
+# across_mm = diameter of the circle that encloses the peg cross-section (used for collision checks)
+
+markers: {dictionary: DICT_4X4_50, side_mm: 38.0}
+board_thickness_mm: 3.0
