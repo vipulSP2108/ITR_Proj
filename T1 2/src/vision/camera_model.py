@@ -33,10 +33,14 @@ class CameraModel:
         self.cam_pos = -self.R.T @ self.t
         self.table_z = float(c["table_z_mm"])
         self.xy_corr = np.array(c.get("xy_correction_mm", [0.0, 0.0]), float)
+        # optional fine-tune (pick_place.py --tune-calibration): robot_xy = A @ [x, y, 1] applied to the raw result
+        self.tune = np.array(c.get("fine_tune_affine", [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]), float)
+        self._tune_inv = np.linalg.inv(np.vstack([self.tune, [0.0, 0.0, 1.0]]))[:2]
         self.width, self.height = c["image_size"]
 
     def robot_to_pixel(self, x, y, z=None):
         z = self.table_z if z is None else z
+        x, y = self._tune_inv @ np.array([x, y, 1.0])
         p = self.R @ (np.array([x, y, z], float) - np.append(self.xy_corr, 0.0)) + self.t
         return float(self.f * p[0] / p[2] + self.cx), float(self.f * p[1] / p[2] + self.cy)
 
@@ -45,7 +49,8 @@ class CameraModel:
         z = self.table_z if z is None else z
         d = self.R.T @ np.array([(u - self.cx) / self.f, (v - self.cy) / self.f, 1.0])
         p = self.cam_pos + (z - self.cam_pos[2]) / d[2] * d
-        return float(p[0] + self.xy_corr[0]), float(p[1] + self.xy_corr[1])
+        q = self.tune @ np.array([p[0] + self.xy_corr[0], p[1] + self.xy_corr[1], 1.0])
+        return float(q[0]), float(q[1])
 
     def mm_per_px(self, z=None):
         z = self.table_z if z is None else z

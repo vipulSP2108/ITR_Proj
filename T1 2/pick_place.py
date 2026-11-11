@@ -5,6 +5,8 @@ Needs the calibration in config/camera_robot_calib.yaml (run ./run_calibration.s
 
     python pick_place.py --detect-only        # look only  -> runs/<time>/scan1_annotated.jpg
     python pick_place.py --plan-only          # look + plan -> runs/<time>/plan1.jpg, nothing is picked
+    python pick_place.py --check-calibration  # measure the calibration error now -> runs/<time>/check_sheet.jpg
+    python pick_place.py --tune-calibration   # ... and store a small correction (no need to clear the table)
     python pick_place.py --shape circle       # only the circular peg
     python pick_place.py                      # every peg it can, best order first
     python pick_place.py --order circle,square    # fix the order yourself (others are obstacles meanwhile)
@@ -189,7 +191,11 @@ def find_holes(img, cm):
         m = cv2.moments(c)
         u, v = m["m10"] / m["m00"], m["m01"] / m["m00"]
         shape = classify(c)
-        yaw, side = edge_yaw(c, cm, z, shape)
+        yaw, _ = edge_yaw(c, cm, z, shape)
+        # side length from the hole's AREA in mm^2 (far steadier than measuring single edges)
+        area = cv2.contourArea(np.array([cm.pixel_to_robot(q[0][0], q[0][1], z) for q in c], np.float32))
+        side = {"square": math.sqrt(area), "hexagon": math.sqrt(2 * area / (3 * math.sqrt(3))),
+                "triangle": math.sqrt(4 * area / math.sqrt(3))}.get(shape)
         out.append({"shape": shape, "px": (u, v), "xy": cm.pixel_to_robot(u, v, z), "yaw": yaw, "side": side, "cnt": c})
     return out
 
@@ -432,9 +438,15 @@ def plan_move(mv, peg, goal_xy, others, label, bounds, hole=None, force=False):
             return {"fail": f"cannot pick: even barely open, the fingers would pass {g:.0f} mm from the {who} "
                             f"(buffer required: {BUF['finger_clearance']:.0f} mm). Move those two pegs about "
                             f"{BUF['finger_clearance'] - g + 5:.0f} mm further apart, or put one nearer to / further from the robot"}
-    g, who = fingers_gap(goal_xy, width + GR["release_extra_mm"], others)
-    if g < BUF["finger_clearance"]:
-        return {"fail": f"cannot release: fingers would be {g:.0f} mm from the {who} (need {BUF['finger_clearance']:.0f})"}
+    # when letting go, open as wide as the neighbours allow (a wide opening is what reliably frees the peg)
+    release_extra = GR["open_extra_mm"]
+    while True:
+        g, who = fingers_gap(goal_xy, width + release_extra, others)
+        if g >= BUF["finger_clearance"]:
+            break
+        release_extra -= 4.0
+        if release_extra < GR["release_extra_mm"]:
+            return {"fail": f"cannot release: fingers would be {g:.0f} mm from the {who} (need {BUF['finger_clearance']:.0f})"}
     drop = (BOARD_T if hole is not None else 0.0) + HT["release_gap"]
     # choose where on the peg to grip: the height that lets the peg hang most upright when released
     best = None
@@ -457,9 +469,18 @@ def plan_move(mv, peg, goal_xy, others, label, bounds, hole=None, force=False):
     if path is None:
         return {"fail": f"no path keeps {BUF['hard_clearance']:.0f} mm between the carried peg and the other pegs"}
     return {"peg": peg, "goal": tuple(goal_xy), "path": path, "obstacles": obstacles, "mover_r": mover_r, "label": label,
-            "grip": grip, "drop": drop, "width": width, "open_extra": open_extra, "tilt_pick": t_pick, "tilt_release": t_rel,
+            "grip": grip, "drop": drop, "width": width, "open_extra": open_extra, "release_extra": release_extra, "tilt_pick": t_pick, "tilt_release": t_rel,
             "jaw_mis": jaw_mis, "arrive_mis": arrive_mis, "fit_tol": tol, "into_hole": hole is not None,
             "length": path2d.path_length(path), "gap": path2d.min_gap(path, obstacles, mover_r) if obstacles else 999.0}
+
+
+def release_point(hole):
+    """Where the peg's bottom is aimed: the measured hole centre plus the per-shape fine-tune along
+    the line from the robot base (config placement_fine_tune_mm)."""
+    x, y = hole["xy"]
+    d = float(CFG.get("placement_fine_tune_mm", {}).get("outward", {}).get(hole["shape"], 0.0))
+    r = math.hypot(x, y)
+    return (x + d * x / r, y + d * y / r)
 
 
 def choose(mv, todo, standing, holes, bounds, force):
@@ -476,7 +497,7 @@ def choose(mv, todo, standing, holes, bounds, force):
             me = next(s for s in sim if s["id"] == peg["id"])
             others = [s for s in sim if s["id"] != peg["id"]]
             hole = holes[peg["shape"]]
-            pl = plan_move(mv, me, hole["xy"], others, f"{peg['shape']} -> hole", bounds, hole, force)
+            pl = plan_move(mv, me, release_point(hole), others, f"{peg['shape']} -> hole", bounds, hole, force)
             if "fail" in pl:
                 reasons.setdefault(peg["shape"], pl["fail"])
                 ok = False
@@ -630,8 +651,8 @@ def execute(mv, pl):
     if pl["into_hole"] and INS["enabled"]:
         seat_in_hole(mv, sx, sy, pl["drop"], grip)
     mv.photo("lowered")
-    mv.step(f"release (fingers open only {GR['release_extra_mm']:.0f} mm wider than the peg)")
-    gripper_goto(mv.arm, g + int(GR["release_extra_mm"] * GR["counts_per_mm"])); time.sleep(0.5)
+    mv.step(f"release (fingers open {pl['release_extra']:.0f} mm wider than the peg)")
+    gripper_goto(mv.arm, min(GRIP_OPEN, g + int(pl["release_extra"] * GR["counts_per_mm"]))); time.sleep(0.6)
     mv.step("retreat straight up, clear of the peg top")
     up = mv.hover_height(sx, sy, min_down=TG["retreat_min_down_deg"])
     mv.goto(sx, sy, up, slow=True, min_down=TG["retreat_min_down_deg"]); mv.photo("released")
@@ -674,6 +695,106 @@ def seat_in_hole(mv, sx, sy, start_above, grip):
           "(either it already stands on the mat inside the hole, or it sits on the rim) - releasing here")
 
 
+def check_calibration(mv, pegs, bounds, tune=False):
+    """Show the fingertip to the camera at free spots above the pegs and MEASURE where the camera sees it.
+
+    At every spot the gripper closes and opens once: the picture difference isolates the fingers
+    (same detector as the calibration). The gap between "where the arm put its fingertip" and
+    "where the camera model says that fingertip is" is the calibration error at that spot.
+    With tune=True the errors are fitted and stored as a small correction (fine_tune_affine) in
+    config/camera_robot_calib.yaml - a quick repair when the camera has moved a few mm,
+    without clearing the table. A full ./run_calibration.sh resets it.
+    """
+    import importlib
+    from hw_common import GRIP_CLOSED
+    cal = importlib.import_module("01_calibrate_camera_robot")
+    cc = CFG["calibration_check"]
+    tilt, above = cc["tool_tilt_deg"], cc["fingertip_above_mat"]
+    tip_len, z = mv.calib["fingertip_len_mm"], mv.cm.table_z + above
+    cand = []
+    for x in np.arange(bounds[0], bounds[1], 20.0):
+        for y in np.arange(bounds[2], bounds[3], 20.0):
+            if x < 80 or any(math.hypot(x - p["xy"][0], y - p["xy"][1]) < cc["keep_from_pegs"] for p in pegs):
+                continue                                   # (x < 80: too close to the robot's own base to see the fingers)
+            u, v = mv.cm.robot_to_pixel(x, y, z)
+            if not (60 < u < mv.cm.width - 60 and 60 < v < mv.cm.height - 60):
+                continue                                   # the fingertip must be inside the picture
+            raw, dn = ik_cmd(x, y, z, tilt, tip_len, mv.calib, min_down_deg=tilt)
+            if raw is not None:
+                cand.append((float(x), float(y), raw))
+    if not cand:
+        print("no free spot for the check")
+        return
+    n = cc["tune_points"] if tune else cc["points"]
+    chosen = [max(cand, key=lambda c: math.hypot(c[0], c[1]))]            # spread the test spots out
+    while len(chosen) < min(n, len(cand)):
+        chosen.append(max(cand, key=lambda c: min(math.hypot(c[0] - d[0], c[1] - d[1]) for d in chosen)))
+    chosen.sort(key=lambda c: math.atan2(c[1], c[0]))                      # sweep across once, no zig-zag
+    tiles, cmd, seen = [], [], []
+    for i, (x, y, raw) in enumerate(chosen):
+        mv.rec.label = f"calibration check {i + 1}/{len(chosen)}"
+        mv.tuck(towards=(x, y))
+        move_joints(mv.arm, raw, max_step=12)
+        gripper_goto(mv.arm, GRIP_OPEN); time.sleep(0.5)
+        img_open = mv.cam.read_avg(3)
+        gripper_goto(mv.arm, GRIP_CLOSED); time.sleep(0.5)
+        img = mv.cam.read_avg(3)
+        u, v = mv.cm.robot_to_pixel(x, y, z)
+        r = math.hypot(x, y)                                               # a point 50 mm back along the tool
+        bx, by, bz = x - 50 * math.cos(math.radians(tilt)) * x / r, y - 50 * math.cos(math.radians(tilt)) * y / r, z + 50 * math.sin(math.radians(tilt))
+        ub, vb = mv.cm.robot_to_pixel(bx, by, bz)
+        blobs = [b_ for b_ in cal.finger_blobs(img_open, img) if np.linalg.norm(b_[1] - (u, v)) < 110]
+        note = "fingers not found"
+        if blobs:
+            m = min(blobs, key=lambda b_: np.linalg.norm(b_[1] - (u, v)))[0]
+            tu, tv = cal.tip_from_mask(m, (u - ub, v - vb))
+            sx, sy = mv.cm.pixel_to_robot(tu, tv, z)
+            cmd.append((x, y)); seen.append((sx, sy))
+            note = f"camera sees it at ({sx:.0f},{sy:.0f}): off by {math.hypot(sx - x, sy - y):.1f} mm"
+            cv2.circle(img, (int(tu), int(tv)), 9, (0, 0, 255), 2)
+        cv2.drawMarker(img, (int(u), int(v)), (0, 255, 255), cv2.MARKER_CROSS, 40, 1)
+        cv2.circle(img, (int(u), int(v)), 18, (0, 255, 255), 1)
+        cv2.imwrite(os.path.join(mv.dir, f"check_{i}.jpg"), img)
+        x0, y0 = int(np.clip(u - 160, 0, img.shape[1] - 320)), int(np.clip(v - 120, 0, img.shape[0] - 240))
+        tiles.append(img[y0:y0 + 240, x0:x0 + 320])
+        print(f"  spot {i + 1}: fingertip put at robot ({x:.0f},{y:.0f}); {note}")
+        mv.tuck()
+    gripper_goto(mv.arm, GRIP_OPEN)
+    while len(tiles) % 4:
+        tiles.append(np.zeros_like(tiles[0]))
+    cv2.imwrite(os.path.join(mv.dir, "check_sheet.jpg"), np.vstack([np.hstack(tiles[k:k + 4]) for k in range(0, len(tiles), 4)]))
+    print("picture:", os.path.join(mv.dir, "check_sheet.jpg"), "(yellow cross = expected fingertip, red circle = where the camera found it)")
+    if len(cmd) < 3:
+        print("too few fingertip detections to judge the calibration")
+        return
+    C, S = np.array(cmd), np.array(seen)
+    err = np.linalg.norm(S - C, axis=1)
+    print(f"calibration error now: mean {err.mean():.1f} mm, worst {err.max():.1f} mm over {len(err)} spots "
+          f"({'fine' if err.mean() < 4 else 'worth tuning: run  python pick_place.py --tune-calibration' if not tune else 'tuning...'})")
+    if not tune:
+        return
+    # fit  commanded = A @ [seen, 1]  (shift + small rotation/scale); drop spots that disagree with the rest
+    keep = err < np.median(err) + 3 * (np.median(np.abs(err - np.median(err))) + 1.0)
+    C, S = C[keep], S[keep]
+    if len(C) >= 5:
+        A = np.linalg.lstsq(np.column_stack([S, np.ones(len(S))]), C, rcond=None)[0].T
+    else:
+        A = np.array([[1.0, 0.0, (C - S)[:, 0].mean()], [0.0, 1.0, (C - S)[:, 1].mean()]])
+    after = np.linalg.norm(np.column_stack([S, np.ones(len(S))]) @ A.T - C, axis=1)
+    lin = A[:, :2]
+    if abs(np.linalg.det(lin) - 1) > 0.08 or np.abs(A[:, 2]).max() > 30:
+        print("the correction needed is too large for a fine-tune - the camera really moved: run ./run_calibration.sh")
+        return
+    total = np.vstack([A, [0, 0, 1]]) @ np.vstack([mv.cm.tune, [0, 0, 1]])        # on top of any earlier fine-tune
+    mv.calib["fine_tune_affine"] = [[float(v) for v in row] for row in total[:2]]
+    mv.calib["fine_tuned_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
+    with open(os.path.join(T1, "config", "camera_robot_calib.yaml"), "w") as f:
+        yaml.safe_dump(mv.calib, f, sort_keys=False)
+    print(f"fine-tune saved ({keep.sum()} spots): shift ({A[0, 2]:+.1f},{A[1, 2]:+.1f}) mm, "
+          f"turn {math.degrees(math.atan2(lin[1, 0], lin[0, 0])):+.2f} deg; error {err[keep].mean():.1f} -> {after.mean():.1f} mm. "
+          "Run --check-calibration to confirm.")
+
+
 def advise_upright(mv, pl):
     """If the peg is released tilted, say how much closer the hole would have to be for an upright release."""
     if pl["tilt_release"] >= TG["upright_warn_deg"]:
@@ -693,6 +814,8 @@ def main():
     ap.add_argument("--shape", default="all", help="circle / square / hexagon / triangle / all")
     ap.add_argument("--detect-only", action="store_true")
     ap.add_argument("--plan-only", action="store_true")
+    ap.add_argument("--check-calibration", action="store_true", help="measure how well the calibration still fits (pegs can stay)")
+    ap.add_argument("--tune-calibration", action="store_true", help="same, then store a small correction (pegs can stay)")
     ap.add_argument("--force", action="store_true", help="try a peg even if its rotation does not match the hole")
     ap.add_argument("--order", default="", help="fix the order yourself, e.g. --order circle,square (default: best order is chosen)")
     a = ap.parse_args()
@@ -704,7 +827,7 @@ def main():
     arm = connect_arm()
     rec = Recorder(cam, os.path.join(run_dir, "run.mp4"))
     mv = Mover(arm, cam, cm, calib, rec, run_dir)
-    holes, done, failed = {}, [], {}
+    holes, done, failed, lost, pending = {}, [], {}, [], None
     try:
         low = TRV["grip_centre_above_mat"] - TRV["gripper_below_centre"] - TRV["droop_allowance"] - PEG_H
         if low < TRV["min_gap_over_pegs"]:
@@ -724,6 +847,16 @@ def main():
                 p["id"] = i
                 p["placed"] = p["shape"] != "fallen" and p["shape"] != "cut-off" and (p.get("hidden_hole", False) or any(math.hypot(p["xy"][0] - h["xy"][0], p["xy"][1] - h["xy"][1]) < 30 for h in holes.values()))
             loose = [p for p in pegs if not p["placed"] and p["shape"] not in ("fallen", "cut-off")]
+            if pending:
+                if any(p["shape"] == pending and p["placed"] for p in pegs):
+                    done.append(pending)
+                    print(f"VERIFIED: the {pending} peg stands in its hole.")
+                else:
+                    lost.append(pending)
+                    print(f"WARNING: the {pending} peg is NOT in its hole after the move"
+                          + (" and is nowhere in the picture - it probably stuck to the gripper and dropped outside the view."
+                             if not any(p["shape"] == pending or p.get("claims") == pending for p in pegs) else "."))
+                pending = None
             allpts = np.vstack([mat_poly] + [np.array([h["xy"]]) for h in holes.values()])
             bounds = (float(allpts[:, 0].min()) - 40, float(allpts[:, 0].max()) + 40,
                       float(allpts[:, 1].min()) - 40, float(allpts[:, 1].max()) + 40)
@@ -735,6 +868,9 @@ def main():
                 print(f"peg   : {p['shape']:8s} ({p['colour']}) at ({p['xy'][0]:.0f},{p['xy'][1]:.0f})"
                       f"{'' if p['yaw'] is None else ' yaw %.0f deg' % p['yaw']}  {'in hole' if p['placed'] else 'on mat'}"
                       f"  [position check {p['spread']:.0f} mm]")
+            if a.check_calibration or a.tune_calibration:
+                check_calibration(mv, pegs, bounds, tune=a.tune_calibration)
+                break
             if a.detect_only:
                 break
             for c0 in [p for p in pegs if p["shape"] == "cut-off"]:
@@ -784,10 +920,11 @@ def main():
                 break
             ok = execute(mv, pl)
             if ok and pl["into_hole"]:
-                done.append(pl["peg"]["shape"])
+                pending = pl["peg"]["shape"]               # only counted once the next scan sees it in its hole
             elif not ok:
                 failed[pl["peg"]["shape"]] = failed.get(pl["peg"]["shape"], 0) + 1
-        print("\nRESULT: placed", done or "nothing", "| failed grasps:", failed or "none")
+        print("\nRESULT: verified in their holes:", done or "nothing", "| not in hole after the move:", lost or "none",
+              "| failed grasps:", failed or "none")
         mv.tuck(base_raw=calib["scan_pose_raw"][0])
     finally:
         rec.close()

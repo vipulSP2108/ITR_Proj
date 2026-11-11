@@ -376,6 +376,7 @@ def solve():
         "joint_offsets_rad": [float(sag[0]), 0.0, float(sag[1])],   # shoulder, elbow, wrist zero offsets
         "scan_pose_raw": SCAN_POSES[best],
         "xy_correction_mm": [0.0, 0.0],
+        "fine_tune_affine": [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]],   # reset; refined by pick_place.py --tune-calibration
         "fit_rms_mm": float(np.sqrt((e_tip ** 2).mean()) * mm_px),
         "n_poses": len(used),
         "marker_mm": MARKER_MM,

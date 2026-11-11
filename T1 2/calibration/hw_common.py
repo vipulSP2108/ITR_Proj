@@ -28,30 +28,68 @@ class LiveCamera:
         self._frame = None
         self._count = 0
         self._lock = threading.Lock()
-        cmd = ["ffmpeg", "-nostdin", "-loglevel", "error", "-f", "avfoundation", "-pixel_format", "uyvy422",
-               "-fflags", "nobuffer", "-framerate", str(fps), "-video_size", f"{width}x{height}", "-i", device,
-               "-f", "rawvideo", "-pix_fmt", "bgr24", "-"]
-        self._proc = subprocess.Popen(cmd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
-                                      stderr=subprocess.DEVNULL, bufsize=width * height * 3)
-        self._alive = True
-        self._thread = threading.Thread(target=self._loop, daemon=True)
-        self._thread.start()
-        t0 = time.time()
+        # The frame rates the RealSense offers depend on the USB link (USB 3: 30/15 fps, USB 2: only
+        # 6 fps at 1280x720). The picture geometry is the same, so take the fastest one that works.
+        device = self._colour_device(device)
+        self.fps = None
+        for rate in dict.fromkeys((30, fps, 10, 6)):
+            cmd = ["ffmpeg", "-nostdin", "-loglevel", "error", "-f", "avfoundation", "-pixel_format", "uyvy422",
+                   "-fflags", "nobuffer", "-framerate", str(rate), "-video_size", f"{width}x{height}", "-i", device,
+                   "-f", "rawvideo", "-pix_fmt", "bgr24", "-"]
+            self._count = 0
+            self._proc = subprocess.Popen(cmd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                          stderr=subprocess.DEVNULL, bufsize=width * height * 3)
+            self._alive = True
+            self._thread = threading.Thread(target=self._loop, daemon=True)
+            self._thread.start()
+            t0 = time.time()
+            while self._count == 0 and self._proc.poll() is None and time.time() - t0 < 6:
+                time.sleep(0.1)
+            if self._count > 0:
+                self.fps = rate
+                break
+            self._alive = False
+            self._proc.kill()
+            self._thread.join(timeout=1)
+        if self.fps is None:
+            raise RuntimeError(f"Camera '{device}' produced no frames at {width}x{height}. Run from a terminal with "
+                               f"camera permission and check the RealSense USB cable (a USB 3 port gives more frame rates).")
+        if self.fps < 15:
+            print(f"[Info] camera runs at only {self.fps} fps (slow USB link) - works, just a little slower")
         # The RealSense stream changes exposure/crop during its first seconds: wait until
-        # at least 4 s of video have arrived and two frames 0.5 s apart look the same.
-        prev = None
+        # about 4 s of video have arrived and two frames 0.5 s apart look the same.
+        t0, prev = time.time(), None
         while time.time() - t0 < 15:
             time.sleep(0.5)
-            if self._count < 100:
+            if self._count < 4 * self.fps:
                 continue
             cur = self._frame[::8, ::8].astype(np.int16)
             if prev is not None and np.abs(cur - prev).mean() < 2.0:
                 break
             prev = cur
-        if self._count == 0:
-            err = ""
-            raise RuntimeError(f"Camera '{device}' produced no frames. Run from a terminal with camera "
-                               f"permission and check the RealSense USB cable.\n{err}")
+
+    @staticmethod
+    def _colour_device(name):
+        """Exact AVFoundation name of the RealSense COLOUR stream.
+
+        The camera shows up as several devices ("... RGB", "... Depth"). On a slow (USB 2) link macOS
+        may list only the Depth/infra-red one, whose grey dotted picture is useless for finding pegs.
+        """
+        out = subprocess.run(["ffmpeg", "-hide_banner", "-f", "avfoundation", "-list_devices", "true", "-i", ""],
+                             capture_output=True, text=True).stderr
+        video = out.split("AVFoundation audio devices")[0]
+        names = [ln.split("] ", 2)[-1].strip() for ln in video.splitlines() if "] [" in ln]
+        mine = [n for n in names if name.lower() in n.lower()]
+        # the product is called "... Depth Camera 435i <stream>": only the LAST word tells the stream
+        colour = ([n for n in mine if n.split()[-1].lower() == "rgb"]
+                  or [n for n in mine if n.split()[-1].lower() not in ("depth", "infrared")])
+        if colour:
+            return colour[0]
+        raise RuntimeError(
+            "The RealSense colour camera is not available"
+            + (f" - macOS only lists: {mine}. " if mine else " - no RealSense found at all. ")
+            + "Unplug the camera and plug it into a USB 3 port with its USB 3 cable (directly into the Mac or the same hub "
+              "socket as before), wait 5 s and run again. Check with:  ffmpeg -f avfoundation -list_devices true -i \"\"")
 
     def _loop(self):
         n = self.w * self.h * 3

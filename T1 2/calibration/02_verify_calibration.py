@@ -12,6 +12,7 @@ A photo of every touch is saved to calibration/output/verify_marker_<id>.jpg.
                                                           # the average nudge is stored as
                                                           # xy_correction_mm in the calibration file
     python calibration/02_verify_calibration.py --xy 200 50   # touch an arbitrary robot point
+    python calibration/02_verify_calibration.py --height 130 --tilt 30 --xy 170 0   # same, but above standing pegs
 
 Place a ruler from the robot base if you want to check real millimetres: the script prints
 the robot X/Y (mm, measured from the base rotation axis) of every point it touches.
@@ -58,10 +59,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--jog", action="store_true")
     ap.add_argument("--tilt", type=float, default=45.0, help="tool angle below horizontal (90 = straight down)")
+    ap.add_argument("--height", type=float, default=25.0,
+                    help="fingertip height above the mat in mm (use 130 when 100 mm pegs are standing on the mat)")
     ap.add_argument("--xy", type=float, nargs=2, action="append", help="extra robot point(s) to touch (mm)")
     a = ap.parse_args()
-    global TILT
-    TILT = a.tilt
+    global TILT, TOUCH_CLEARANCE
+    TILT, TOUCH_CLEARANCE = a.tilt, a.height
 
     calib = load_calib()
     cm = CameraModel()
