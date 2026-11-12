@@ -24,12 +24,11 @@ import yaml
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from hw_common import (T1_DIR, LiveCamera, connect_arm, move_joints, read_joints, gripper_goto,
-                       GRIP_CLOSED, GRIP_OPEN, load_calib, ik_cmd)
+                       GRIP_CLOSED, GRIP_OPEN, load_calib, ik_cmd, FOLD_RAW)
 from src.vision.camera_model import CameraModel
 from src.planning import omx_kinematics as K
 
 OUT = os.path.join(T1_DIR, "calibration", "output")
-HOME = [0, 2048, 2048, 2048]
 TOUCH_CLEARANCE = 25.0        # fingertip height above the mat (mm) - high enough never to drag on it
 TILT = 45.0                   # tool angle below horizontal; tilted so the camera can see the fingertip
 
@@ -73,7 +72,7 @@ def main():
     nudges = []
     try:
         cur = read_joints(arm)
-        move_joints(arm, [cur[0]] + HOME[1:])
+        move_joints(arm, [cur[0]] + FOLD_RAW)
         gripper_goto(arm, GRIP_CLOSED)
         move_joints(arm, calib["scan_pose_raw"])
         time.sleep(0.5)
@@ -129,7 +128,7 @@ def main():
             with open(os.path.join(T1_DIR, "config", "camera_robot_calib.yaml"), "w") as f:
                 yaml.safe_dump(calib, f, sort_keys=False)
             print(f"saved average correction X={corr[0]:+.1f} Y={corr[1]:+.1f} mm")
-        move_joints(arm, HOME)
+        move_joints(arm, calib["scan_pose_raw"])
         gripper_goto(arm, GRIP_OPEN)
     finally:
         cam.release()

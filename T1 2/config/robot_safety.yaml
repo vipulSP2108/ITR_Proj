@@ -1,0 +1,10 @@
+# Where the arm may go. Angles are the BASE angle in degrees: 0 = straight ahead (base count 0),
+# + = towards the CAMERA STAND side (the side the arm hit on 2026-11-12), - = the other side.
+base_min_deg: -100        # the scan pose sits at -90 (away from the camera stand)
+base_max_deg: 55          # mat and holes need up to about +50; beyond that is the camera stand
+big_turn_deg: 25          # base turns larger than this are done with the arm FOLDED UP first
+# Folded-up arm shape used for every big turn (shoulder, elbow, wrist in degrees, ROBOTIS sign
+# convention). Reaches ~12 cm forward / 2 cm back, top ~36 cm (camera is ~47 cm up), lowest
+# point ~19 cm (pegs are 10 cm tall). Gripper points straight up.
+fold_angles_deg: [-20, 15, -85]
+scan_base_deg: -90        # base angle of the scan pose (folded arm, out of the camera's view)

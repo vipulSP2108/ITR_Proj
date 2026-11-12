@@ -13,6 +13,7 @@ cd ~/Desktop/ITR_Proj/"T1 2"
 | Arm powered and talking | `python calibration/00_check_arm.py` | five lines with `volt=12.0V hw_err=0x00`, then `ARM OK` |
 | Colour camera present | `ffmpeg -f avfoundation -list_devices true -i ""` | a line ending in `435i RGB` |
 | What does the robot see | `python pick_place.py --detect-only` | `runs/<time>/scan1_annotated.jpg` shows every peg and hole labelled |
+| Where should I stand the pegs (empty mat) | `python pick_place.py --suggest-layout` | `suggested_layout.jpg`: an outline for each peg drawn on the live picture |
 
 If the camera list only shows `435i Depth`: unplug the RealSense and plug it into a USB 3 port with its USB 3 cable.
 
@@ -33,7 +34,8 @@ At the end it prints, for example:
 
     RESULT: verified in their holes: ['circle', 'square'] | not in hole after the move: none | failed grasps: none
 
-A peg is only listed as verified after the next camera scan sees it standing in its hole.
+A peg is only listed as verified after the next camera scan sees it standing upright in its hole.
+A peg reported as `(leaning)` reached its hole but is not seated - push it in by hand.
 
 ### Rules for placing things on the table
 * Everything stands on the green mat, fully inside the camera picture (check with `--detect-only`).
@@ -49,8 +51,14 @@ A peg is only listed as verified after the next camera scan sees it standing in 
 python pick_place.py --check-calibration
 ```
 
-Open `runs/<time>/check_sheet.jpg`: the yellow crosshair should sit between the two fingertips (within about
-5 mm). If it is clearly off, recalibrate.
+The arm shows its fingertip to the camera at a few free spots and prints, for example:
+
+    calibration error now: mean 1.6 mm, worst 2.6 mm over 4 spots (fine)
+
+* mean up to about 4 mm: fine, carry on.
+* mean above about 5 mm: the camera, board or robot was moved - recalibrate (section 3).
+  (2026-11-11: 7 mm gave a missed grasp and a leaning peg; a bumped keyboard moved the camera by 13 mm.)
+* Do this check at the start of every session and after anything near the camera was touched.
 
 ## 3. Recalibrate (10 minutes) - when the camera, robot or table was moved
 
@@ -62,8 +70,9 @@ Open `runs/<time>/check_sheet.jpg`: the yellow crosshair should sit between the 
 ./run_calibration.sh
 ```
 
-Good result: `calibration quality: GOOD`, fingertip error about 2-3 mm, and in
-`calibration/output/verify_point_*.jpg` the crosshair sits between the fingertips.
+The script prints `calibration quality: GOOD` or `POOR (reason)`, then runs the check of section 2
+(good = mean error below about 3 mm). It also warns if the mat or board is cut off by the picture edge
+and if the camera moved while calibrating. Then run `python pick_place.py --suggest-layout`.
 Details and troubleshooting: `calibration/README.md`.
 
 ## 4. Fine-tuning without recalibrating
@@ -89,3 +98,8 @@ Fixed object sizes (peg height 100 mm etc.) are in `config/task_objects.yaml`.
 * `Camera ... produced no frames` / `colour camera is not available` - replug the RealSense (USB 3).
 * Do **not** use the old scripts (`hw_run.py`, `run_hardware_pipeline*.py`, `../calibrate_and_test_arm.py`):
   they use wrong arm geometry.
+
+## 6. Keep your work safe
+
+Commit after every good session (`git add -A && git commit -m "..."`). On 2026-11-11 an accidental
+`git reset --hard` / "Discard all changes" wiped a whole evening of uncommitted changes.

@@ -103,13 +103,16 @@ class OpenManipulatorController:
             self.is_connected = False
             print("[Info] Disconnected from U2D2 (holding torque maintained).")
 
-    def ping_motor(self, dxl_id: int) -> Tuple[bool, Optional[int]]:
+    def ping_motor(self, dxl_id: int, retries: int = 2) -> Tuple[bool, Optional[int]]:
         """Pings a specific motor ID. Returns (success, model_number)."""
         if not self.is_connected:
             return False, None
-        model_number, dxl_comm_result, dxl_error = self.packet_handler.ping(self.port_handler, dxl_id)
-        if dxl_comm_result == COMM_SUCCESS:
-            return True, model_number
+        for attempt in range(retries + 1):
+            model_number, dxl_comm_result, dxl_error = self.packet_handler.ping(self.port_handler, dxl_id)
+            if dxl_comm_result == COMM_SUCCESS:
+                return True, model_number
+            if attempt < retries:
+                time.sleep(0.05)
         return False, None
 
     def read_position(self, dxl_id: int) -> Optional[int]:

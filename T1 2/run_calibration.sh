@@ -2,17 +2,23 @@
 # Full camera <-> robot calibration, start to finish.  Run from a real terminal:
 #     cd "T1 2" && ./run_calibration.sh
 # Re-run whenever the camera, the robot base or the table has been moved.
-set -e
+# BEFORE: take all pegs off the mat (the arm sweeps 45 mm above it), leave the ArUco marker on it.
 cd "$(dirname "$0")"
-echo "=== 0/3  Arm health check ==="
-python calibration/00_check_arm.py
+echo "=== 0/2  Arm health check ==="
+python calibration/00_check_arm.py || { echo "Arm not OK - check the 12 V supply and cables."; exit 1; }
 echo
-echo "=== 1/3  Calibration (arm moves for ~7 minutes - keep hands AND people out of the camera view) ==="
+echo "=== 1/2  Calibration (arm moves for ~9 minutes - keep hands AND people out of the camera view) ==="
 python calibration/01_calibrate_camera_robot.py
+if [ $? -ne 0 ]; then
+  echo
+  echo "Calibration quality is POOR (reason printed above). Make sure nothing moves, then run ./run_calibration.sh again."
+  exit 1
+fi
 echo
-echo "=== 2/3  Verification: fingertip goes to 3 new points (and any reachable ArUco marker) ==="
-python calibration/02_verify_calibration.py --xy 150 60 --xy 200 -70 --xy 240 20
+echo "=== 2/2  Independent check: the camera measures the fingertip at new spots ==="
+python pick_place.py --check-calibration
 echo
-echo "Done. Open calibration/output/verify_point_*.jpg : the yellow crosshair must sit between the two fingertips."
-echo "Also see calibration/output/calib_overlay.jpg (robot axes + 50 mm grid drawn on the table)."
-echo "Optional fine-tune by hand:  python calibration/02_verify_calibration.py --jog"
+echo "Done. Good = 'calibration error now: mean' below about 3 mm."
+echo "Pictures: calibration/output/calib_overlay.jpg (robot axes + 50 mm grid on the table),"
+echo "          runs/<newest>/check_sheet.jpg (yellow cross = expected fingertip, red circle = measured)."
+echo "Next: python pick_place.py --suggest-layout   (shows where to stand the pegs)"

@@ -13,33 +13,26 @@ heights_above_mat_mm:
   never_below: 15.0            # grip centre is never commanded lower than this
 
 gripper:
-  touch_counts: 1385           # fingers touch
-  counts_per_mm: 13.6          # gripper counts per mm of finger gap
+  # gripper counts <-> finger gap: see the crank model in calibration/hw_common.py (grip_counts_for_gap)
   finger_thickness_mm: 12.0    # material outside the gap
   finger_half_width_mm: 18.0   # half finger width along the arm's radial direction
   open_extra_mm: 30.0          # fingers open this much wider than the peg before descending ...
   open_extra_min_mm: 16.0      # ... or less when a neighbour is close, but never less than this
   release_extra_mm: 10.0       # ... and only this much wider when letting go (neighbours are close)
-  held_min_counts: 1480        # closing further than this means nothing was gripped
+  release_extra_min_mm: 4.0    # ... adaptive minimum when releasing into a hole between tight neighbours
 
 safety_buffers_mm:
   hard_clearance: 30.0         # minimum free gap, edge to edge, between (carried peg + fingers) and any other peg
   preferred_clearance: 60.0    # the planner pays extra for coming closer than this, so it keeps a wide berth when it can
-  end_clearance: 12.0          # reduced minimum right at the pick / release spot (there the finger check below applies)
+  end_clearance: 8.0           # reduced minimum right at the pick / release spot (there the finger check below applies)
   finger_clearance: 15.0       # free gap required between the open fingers and neighbouring pegs when picking / releasing
+  hole_finger_clearance: 6.0   # adaptive clearance when releasing into a hole between seated neighbours
   mat_edge: 30.0               # pegs are accepted up to this far outside the detected mat edge
-  peg_shape_check: 15.0        # a blob is a peg only if its foot and its top (assuming 100 mm height) agree this well
-  parking_from_pegs: 110.0     # a parking spot is at least this far (centre to centre) from every other peg
-  parking_from_board: 70.0     # ... and this far from the line of holes
-  parking_from_mat_edge: 45.0
-
-travel_pose:                   # tucked-up arm shape used for EVERY swing of the base and for scanning
-  grip_centre_above_mat: 270.0 # gripper this high: its lowest point is ~140 mm above the 100 mm pegs
-  radius: 140.0                # gripper this far from the base axis
-  tool_down_deg: 0.0           # gripper horizontal
-  min_gap_over_pegs: 100.0     # refuse to run if the pose leaves less than this above the peg tops (incl. droop allowance)
-  gripper_below_centre: 35.0   # lowest gripper part below its centre when horizontal
-  droop_allowance: 30.0        # how much the real arm may hang lower than commanded
+  seated_check: 14.0           # a peg in a hole counts as seated (upright) only if foot and top agree this well
+  peg_shape_check: 42.0        # a blob is a peg only if its foot and its top agree this well (fallen pegs have spread > 50 mm)
+  parking_from_pegs: 90.0      # a parking spot is at least this far (centre to centre) from every other peg
+  parking_from_board: 60.0     # ... and this far from the line of holes
+  parking_from_mat_edge: 35.0
 
 top_grasp:
   min_down_deg: 65.0           # tool never tilts more than 25 deg from vertical while holding a peg
@@ -71,7 +64,15 @@ placement_fine_tune_mm:          # small corrections found by watching real runs
   # positive = release the peg this much FURTHER from the robot than the hole centre the camera measured,
   # negative = nearer. Change these if pegs keep landing a little short / long in their holes.
   outward:
-    circle: 5.0
-    hexagon: 5.0
+    circle: 0.0      # (5.0 on 2026-11-11 only compensated a drifted calibration)
+    hexagon: 0.0
     square: 0.0
     triangle: 0.0
+
+suggested_layout:                # python pick_place.py --suggest-layout  (where to stand the pegs for the best results)
+  from_mat_edge: 35.0            # spots are at least this far inside the mat
+  from_board: 55.0               # ... this far from the row of holes
+  min_from_base: 95.0            # ... this far from the robot base axis
+  min_x_in_front: 60.0         # ... and at least this far IN FRONT of the base (beside it the camera sees pegs badly)
+  max_from_base: 195.0           # ... and not further than this (most accurate zone, tool fully vertical)
+  image_margin_px: 40            # the whole 100 mm tall peg must stay this far inside the camera picture

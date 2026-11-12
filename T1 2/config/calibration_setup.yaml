@@ -13,3 +13,17 @@ tool_tilts_deg: [30.0, 55.0]                     # alternated over the grid
 
 nominal_fingertip_len_mm: 140.0   # starting guess, refined by the solver
 nominal_focal_px: 900.0           # starting guess for the 1280x720 colour stream, refined by the solver
+focal_prior_sigma_px: 30.0        # how firmly the focal length is held near the nominal value
+max_camera_drift_px: 2.0          # marker may move at most this much between start and end of the run
+frame_margin_px: 25               # the mat and the board should stay this far inside the camera picture
+gripper_sideways_sigma_mm: 0      # 0 = not fitted. (The 35 mm 'offset' on 2026-11-12 was really the gripper
+                                  #  working backwards after a power cycle - fixed by gripper homing.)
+lens_centre_sigma_px: 0.001      # lens centre held at the picture centre (freeing it fits nonsense when data is noisy)
+distortion_sigma: 0.00001         # no lens distortion fitted (not needed: earlier calibrations reached 2 mm without it)
+charuco_board:                    # optional 4x4 ChArUco board (DICT_6X6_50), measured with a ruler 2026-11-12
+  squares: [4, 4]
+  square_mm: 45.0
+  marker_mm: 22.5
+  dictionary: DICT_6X6_50
+  legacy_pattern: true
+  snapshot_max_age_h: 3.0         # a board picture older than this is not used
