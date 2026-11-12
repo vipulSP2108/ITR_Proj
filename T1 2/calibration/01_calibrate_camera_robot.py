@@ -223,6 +223,16 @@ def finger_blobs(img_open, img_closed):
             for j in range(1, n) if stats[j, cv2.CC_STAT_AREA] >= 250]
 
 
+def merge_fingers(mask, centre, blobs, reach_px=90):
+    """Both fingers belong to the fingertip: add every other finger blob lying right next to the chosen
+    one (the two fingers can show up as two blobs when a small gap stays between them)."""
+    out = mask.copy()
+    for m_, c_, _ in blobs:
+        if m_ is not mask and np.linalg.norm(np.asarray(c_) - np.asarray(centre)) < reach_px:
+            out = cv2.bitwise_or(out, m_)
+    return out
+
+
 def tip_from_mask(mask, direction):
     """Fingertip mid-point of the closed finger pair.
 
@@ -587,8 +597,10 @@ def solve():
         wrist = project(pts3d(rows, 0, sag, tool=40.0), rv, tv, f)
         keep = []
         for row, tp, wp in zip(rows, tipp, wrist):
-            cands = [(np.linalg.norm(tip_from_mask(m_, tp - wp) - tp), m_) for m_, c_, _ in row["blobs"]]
-            dist, m = min(cands, key=lambda c_: c_[0])
+            cands = [(np.linalg.norm(tip_from_mask(m_, tp - wp) - tp), m_, c_) for m_, c_, _ in row["blobs"]]
+            dist, m, cm_ = min(cands, key=lambda c_: c_[0])
+            m = merge_fingers(m, cm_, row["blobs"])
+            dist = np.linalg.norm(tip_from_mask(m, tp - wp) - tp)
             if dist > radius:
                 continue                                     # nothing near the gripper (e.g. a person walked by)
             row["mask"], row["px"] = m, tip_from_mask(m, tp - wp)

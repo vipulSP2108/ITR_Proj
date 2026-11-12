@@ -4,12 +4,14 @@
 # Everything below is a size, a height above the mat, or a safety buffer (mm / degrees).
 
 heights_above_mat_mm:
-  grip_centre_min: 55.0        # lowest place on a peg the fingers may grip (palm must stay above the peg top)
-  grip_centre_max: 70.0        # highest (30 mm below the peg top)
+  grip_centre_min: 75.0        # lowest place on a peg the fingers may grip: only the TOP part of the peg is held,
+                               # so the fingertips stay well clear of the mat and the neighbours (2026-11-12)
+  grip_centre_max: 85.0        # highest (15 mm below the peg top)
   hover_over_peg_top: 22.0     # grip centre at least this far above a peg top before descending (fingertips clear by ~10)
   hover_over_peg_top_max: 50.0 # ... and up to this far when the arm can reach that high there (it uses the highest it can)
   carry_peg_bottom: 40.0       # bottom of a carried peg while travelling
-  release_gap: 4.0             # bottom of the peg this far above the surface when the fingers open
+  release_gap: 12.0            # bottom of the peg this far above the board when the fingers open - it drops in;
+                               # lower made the arm press the peg onto the board (the 'push' at the end)
   never_below: 15.0            # grip centre is never commanded lower than this
 
 gripper:
@@ -45,8 +47,8 @@ orientation:
   default_fit_deg: 5.0              # allowed rotation error when a hole's size could not be measured
   triangle_fit_deg: 18.0            # a triangle peg drops into its hole up to about this much rotation error
 
-insertion_search:                # "feel for the hole": used when a peg is lowered into a hole
-  enabled: true
+insertion_search:                # "feel for the hole" (pressing down + small circles). OFF: it pushed the peg and the
+  enabled: false                 # neighbours around (2026-11-12). The peg is dropped from release_gap instead.
   contact_error_counts: 12       # joint lag (counts, summed over shoulder/elbow/wrist) that means "touching something"
   step_down_mm: 1.5              # lowering step while feeling for contact
   press_mm: 1.5                  # how far it keeps pressing down while searching sideways
@@ -54,10 +56,12 @@ insertion_search:                # "feel for the hole": used when a peg is lower
   max_below_board_mm: 6.0        # never push the peg bottom further than this below the board's top face
 
 calibration_check:               # python pick_place.py --check-calibration
-  fingertip_above_mat: 135.0     # above the 100 mm pegs
-  tool_tilt_deg: 30.0            # tilted so the camera sees the fingertips
+  fingertip_above_mat: 85.0      # between the two calibration planes (45 / 125 mm) - pegs must be OFF the mat
+  tool_tilt_deg: 55.0            # same tilt the calibration uses, so the fingertips look the same to the camera
   keep_from_pegs: 80.0           # test spots are at least this far from every peg (centre to centre)
-  points: 4                      # spots for --check-calibration
+  min_x: 130.0                   # spots inside the calibrated area: at least this far in front of the base ...
+  max_r: 265.0                   # ... and not further than this
+  points: 6                      # spots for --check-calibration
   tune_points: 9                 # spots for --tune-calibration
 
 placement_fine_tune_mm:          # small corrections found by watching real runs (2026-11-11)

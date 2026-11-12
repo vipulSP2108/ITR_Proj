@@ -341,10 +341,10 @@ def stream_path(arm, waypoints, speed=300.0, settle=0.4, tol=12):
 GRIP_OPEN_STOP = 3300         # nominal count of the end stop the homing finds (fingers closed)
 GRIP_WIDE = 1650              # widest opening
 GRIP_OPEN = 1700              # "open": just short of the widest point
-GRIP_CLOSED = 3250            # fingers just touching (nothing held)
+GRIP_CLOSED = 3290            # fingers fully together at the end stop (3250 still left a visible gap)
 GRIP_SQUEEZE = 3550           # grasp target past the stop: the fingers stall on the peg with limited force
 GRIP_MAX_GAP_MM = 70.0        # finger gap at the widest point (approximate; crank: gap ~ sin of the turn)
-GRIP_HELD_LIMIT = 3215        # stopping short of this when squeezing = something is between the fingers
+GRIP_HELD_LIMIT = 3240        # stopping short of this when squeezing = something is between the fingers
 GRIP_CURRENT = 160            # x2.69 mA  (~430 mA) grip force limit
 GRIP_HOME_CURRENT = 90        # gentler limit while homing
 # Direction of the gripper motor (Drive Mode bit 0). Kept fixed so the homing always finds the same

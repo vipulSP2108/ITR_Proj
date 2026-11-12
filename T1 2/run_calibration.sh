@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 echo "=== 0/2  Arm health check ==="
 python calibration/00_check_arm.py || { echo "Arm not OK - check the 12 V supply and cables."; exit 1; }
 echo
-echo "=== 1/2  Calibration (arm moves for ~9 minutes - keep hands AND people out of the camera view) ==="
+echo "=== 1/3  Calibration (arm moves for ~9 minutes - keep hands AND people out of the camera view) ==="
 python calibration/01_calibrate_camera_robot.py
 if [ $? -ne 0 ]; then
   echo
@@ -15,8 +15,11 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 echo
-echo "=== 2/2  Independent check: the camera measures the fingertip at new spots ==="
+echo "=== 2/3  Independent check: the camera measures the fingertip at new spots ==="
 python pick_place.py --check-calibration
+echo
+echo "=== 3/3  Hole positions with the new calibration -> config/detected_holes.yaml ==="
+python pick_place.py --save-holes
 echo
 echo "Done. Good = 'calibration error now: mean' below about 3 mm."
 echo "Pictures: calibration/output/calib_overlay.jpg (robot axes + 50 mm grid on the table),"

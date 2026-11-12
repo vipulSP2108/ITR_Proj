@@ -224,7 +224,7 @@ def measure_peg(cnt, hsv, cm, shape):
     far_px = c + (t.max() - r_top) * u + lat * v
     xy_foot = np.array(cm.pixel_to_robot(*foot_px))
     xy_far = np.array(cm.pixel_to_robot(far_px[0], far_px[1], z_top))
-    xy, top_px, yaw = (xy_foot + xy_far) / 2, far_px, None           # errors in r_top cancel in the average
+    xy, top_px, yaw, verts = (xy_foot + xy_far) / 2, far_px, None, None   # errors in r_top cancel in the average
 
     # brighter top face inside the blob -> direct position (and rotation for cornered pegs)
     mask = np.zeros(hsv.shape[:2], np.uint8)
@@ -244,7 +244,9 @@ def measure_peg(cnt, hsv, cm, shape):
             if np.linalg.norm(xy_face - xy) < 15:                    # the two methods must agree
                 xy, top_px = xy_face, np.array(tpx)
                 yaw, _ = edge_yaw(tcn, cm, z_top, shape)
-    return (float(xy[0]), float(xy[1])), yaw, tuple(foot_px), tuple(top_px), float(np.linalg.norm(xy_foot - xy_far))
+                poly = cv2.approxPolyDP(tcn, 0.04 * cv2.arcLength(tcn, True), True).reshape(-1, 2)
+                verts = [cm.pixel_to_robot(u_, v_, z_top) for u_, v_ in poly]      # corners of the top face (robot mm)
+    return (float(xy[0]), float(xy[1])), yaw, tuple(foot_px), tuple(top_px), float(np.linalg.norm(xy_foot - xy_far)), verts
 
 
 def find_pegs(img, cm, mat_poly, holes=(), board_poly=None):
@@ -276,7 +278,7 @@ def find_pegs(img, cm, mat_poly, holes=(), board_poly=None):
                 continue
             bx, by, bw, bh = cv2.boundingRect(c)
             cut = bx <= edge or by <= edge or bx + bw >= hsv.shape[1] - edge or by + bh >= hsv.shape[0] - edge
-            xy, yaw, foot_px, top_px, spread = measure_peg(c, hsv, cm, shape)
+            xy, yaw, foot_px, top_px, spread, verts = measure_peg(c, hsv, cm, shape)
             on_mat = inside(mat_poly, xy) >= -BUF["mat_edge"]
             in_hole = any(math.hypot(xy[0] - h["xy"][0], xy[1] - h["xy"][1]) < 40 for h in holes)
             near_board = board_poly is not None and inside(board_poly, xy) >= -25
@@ -298,7 +300,8 @@ def find_pegs(img, cm, mat_poly, holes=(), board_poly=None):
                             "spread": spread, "across": 120.0, "cnt": c})
                 continue
             out.append({"shape": shape, "colour": name, "px": foot_px, "top_px": top_px, "xy": xy, "yaw": yaw,
-                        "spread": spread, "across": PEGS[shape]["across_mm"], "cnt": c, "hidden_hole": hidden_hole})
+                        "spread": spread, "across": PEGS[shape]["across_mm"], "cnt": c, "hidden_hole": hidden_hole,
+                        "verts": verts})
     return out
 
 
@@ -311,8 +314,11 @@ def stable_pegs(cam, cm, mat_poly, holes, board_poly, first):
                                     for q in second)]
 
 
-def ring(cm, x, y, r, n=48):
-    return np.array([cm.robot_to_pixel(x + r * math.cos(t), y + r * math.sin(t)) for t in np.linspace(0, 2 * math.pi, n)], np.int32)
+def ring(cm, x, y, r, n=48, z=None):
+    """Circle of radius r (mm) around (x, y) drawn at height z (default: half way up a peg, where the eye
+    judges it - drawn on the table it looks shifted/shrunk far from the camera because of perspective)."""
+    z = cm.table_z + PEG_H / 2 if z is None else z
+    return np.array([cm.robot_to_pixel(x + r * math.cos(t), y + r * math.sin(t), z) for t in np.linspace(0, 2 * math.pi, n)], np.int32)
 
 
 def annotate(img, cm, pegs, holes, mat_poly=None, plan=None):
@@ -425,8 +431,32 @@ def orientation_plan(peg, goal_xy, hole):
     return jaw_mis, (0.0 if tol >= 180 else mis), max(0.0, tol)
 
 
+def tangent(xy):
+    """Unit vector along the gripper's jaw axis at (x, y): the jaws always open sideways to the line from the base."""
+    r = math.hypot(*xy)
+    return (-xy[1] / r, xy[0] / r)
+
+
+def grasp_offset(peg):
+    """Where the jaws centre on the peg, in mm along the jaw axis from the peg's centre (+ = counter-clockwise side).
+
+    The jaws close symmetrically. A triangle is held between one flat face and the opposite corner,
+    so the middle of the grip lies h/6 (~5 mm) from its centre, towards the corner. Aiming the gripper
+    at the centre instead shoves the triangle 5 mm sideways and it lands off-centre. Square, hexagon
+    and circle are symmetric: offset 0.
+    """
+    v = peg.get("verts")
+    if peg["shape"] != "triangle" or not v or len(v) != 3:
+        return 0.0
+    t = tangent(peg["xy"])
+    proj = [(vx - peg["xy"][0]) * t[0] + (vy - peg["xy"][1]) * t[1] for vx, vy in v]
+    h = PEGS["triangle"]["side_mm"] * math.sqrt(3) / 2
+    return (1.0 if max(proj) > -min(proj) else -1.0) * h / 6.0
+
+
 def plan_move(mv, peg, goal_xy, others, label, bounds, hole=None, force=False):
     """Plan pick(peg) -> goal_xy with `others` as obstacles. Returns a plan dict or {"fail": reason}."""
+    notes = []                                             # relaxed-buffer messages, printed only for the move actually made
     jaw_mis, arrive_mis, tol = orientation_plan(peg, goal_xy, hole)
     if abs(jaw_mis) > ORI["max_grip_misalignment_deg"]:
         return {"fail": f"peg is turned {jaw_mis:.0f} deg to the jaws (corner grip) - turn it by hand"}
@@ -445,7 +475,7 @@ def plan_move(mv, peg, goal_xy, others, label, bounds, hole=None, force=False):
         open_extra -= 2.0
         if open_extra < min_open:
             if force and g >= min_pick_buf:
-                print(f"  [Adaptive Buffer] Pick finger clearance relaxed to {g:.1f} mm for {peg['shape']} (--force active)")
+                notes.append(f"  [Adaptive Buffer] Pick finger clearance relaxed to {g:.1f} mm for {peg['shape']} (--force active)")
                 open_extra += 2.0
                 break
             return {"fail": f"cannot pick: even barely open, the fingers would pass {g:.0f} mm from the {who} "
@@ -462,7 +492,7 @@ def plan_move(mv, peg, goal_xy, others, label, bounds, hole=None, force=False):
         release_extra -= 2.0
         if release_extra < min_rel_extra:
             if (hole is not None or force) and g >= min_rel_buf:
-                print(f"  [Adaptive Buffer] Release finger clearance relaxed to {g:.1f} mm (min: {min_rel_buf:.1f} mm, extra: {release_extra + 2.0:.1f} mm) to fit between seated neighbours.")
+                notes.append(f"  [Adaptive Buffer] Release finger clearance relaxed to {g:.1f} mm (min: {min_rel_buf:.1f} mm, extra: {release_extra + 2.0:.1f} mm) to fit between seated neighbours.")
                 release_extra += 2.0
                 break
             return {"fail": f"cannot release: fingers would be {g:.0f} mm from the {who} (need {min_rel_buf:.0f} mm)"}
@@ -507,13 +537,14 @@ def plan_move(mv, peg, goal_xy, others, label, bounds, hole=None, force=False):
                            hard=h_buf, soft=s_buf, end=e_buf, escape_r=esc)
         if path is not None:
             if h_buf < BUF["hard_clearance"] or e_buf < BUF["end_clearance"]:
-                print(f"  [Adaptive Buffer] Path planned with relaxed clearances: hard={h_buf:.0f} mm, end={e_buf:.0f} mm")
+                notes.append(f"  [Adaptive Buffer] Path planned with relaxed clearances: hard={h_buf:.0f} mm, end={e_buf:.0f} mm")
             break
     if path is None:
         return {"fail": f"no path keeps {BUF['hard_clearance']:.0f} mm between the carried peg and the other pegs"}
     return {"peg": peg, "goal": tuple(goal_xy), "path": path, "obstacles": obstacles, "mover_r": mover_r, "label": label,
             "grip": grip, "drop": drop, "width": width, "open_extra": open_extra, "release_extra": release_extra, "tilt_pick": t_pick, "tilt_release": t_rel,
             "jaw_mis": jaw_mis, "arrive_mis": arrive_mis, "fit_tol": tol, "into_hole": hole is not None,
+            "grasp_offset": grasp_offset(peg), "notes": notes,
             "length": path2d.path_length(path), "gap": path2d.min_gap(path, obstacles, mover_r) if obstacles else 999.0}
 
 
@@ -669,14 +700,17 @@ class Mover:
             h -= 4.0
         return None
 
-    def follow(self, path, above, extra, speed=260.0):
-        """Carry along the planned table path in ONE smooth motion (IK sampled every 10 mm)."""
+    def follow(self, path, above, extra, speed=260.0, offset=0.0):
+        """Carry along the planned table path in ONE smooth motion (IK sampled every 10 mm).
+        offset: the gripper sits this far along the jaw axis from the peg centre (see grasp_offset)."""
         wps = []
         for a, b in zip(path, path[1:]):
             n = max(1, int(math.hypot(b[0] - a[0], b[1] - a[1]) / 10))
             for i in range(1, n + 1):
                 t = i / n
-                wps.append(self.raw_for(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, above, extra))
+                x, y = a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t
+                tx, ty = tangent((x, y))
+                wps.append(self.raw_for(x + offset * tx, y + offset * ty, above, extra))
         stream_path(self.arm, wps, speed=speed, settle=0.5)
 
     def line(self, x, y, above_to, extra=0.0, min_down=None, speed=150.0):
@@ -694,6 +728,11 @@ class Mover:
 def execute(mv, pl):
     peg, (sx, sy), grip = pl["peg"], pl["goal"], pl["grip"]
     px, py = peg["xy"]
+    d = pl.get("grasp_offset", 0.0)
+    if d:                                                  # aim at the middle of the grip, not the peg centre
+        tx, ty = tangent((px, py)); px, py = px + d * tx, py + d * ty
+        tx, ty = tangent((sx, sy)); sx, sy = sx + d * tx, sy + d * ty
+        print(f"       {peg['shape']}: jaws centre {d:+.1f} mm from its middle - gripper aimed there, same offset at the hole")
     carry = HT["carry_peg_bottom"]
     mv.step(f"{pl['label']}: open fingers {pl['width'] + pl['open_extra']:.0f} mm, turn towards the peg, hover")
     gripper_goto(mv.arm, grip_counts(pl["width"] + pl["open_extra"]))
@@ -715,7 +754,7 @@ def execute(mv, pl):
           f"{'' if abs(held_mm - pl['width']) < 8 else ' - OFF-CENTRE or wrong peg?'})")
     mv.step("lift"); mv.line(px, py, carry, extra=grip); mv.photo("lifted")
     mv.step(f"carry along the planned path ({len(pl['path']) - 1} segment(s))")
-    mv.follow(pl["path"], carry, grip); mv.photo("over_goal")
+    mv.follow(pl["path"], carry, grip, offset=d); mv.photo("over_goal")
     mv.step(f"lower (peg will be {90 - pl['tilt_release']:.0f} deg off upright)")
     mv.line(sx, sy, pl["drop"], extra=grip); time.sleep(0.3)
     if pl["into_hole"] and INS["enabled"]:
@@ -784,7 +823,8 @@ def check_calibration(mv, pegs, bounds, tune=False, mat_poly=None):
     cand = []
     for x in np.arange(bounds[0], bounds[1], 20.0):
         for y in np.arange(bounds[2], bounds[3], 20.0):
-            if x < 80 or any(math.hypot(x - p["xy"][0], y - p["xy"][1]) < cc["keep_from_pegs"] for p in pegs):
+            if x < cc.get("min_x", 80) or math.hypot(x, y) > cc.get("max_r", 400) or \
+                    any(math.hypot(x - p["xy"][0], y - p["xy"][1]) < cc["keep_from_pegs"] for p in pegs):
                 continue                                   # (x < 80: too close to the robot's own base to see the fingers)
             u, v = mv.cm.robot_to_pixel(x, y, z)
             if not (60 < u < mv.cm.width - 60 and 60 < v < mv.cm.height - 60):
@@ -820,7 +860,8 @@ def check_calibration(mv, pegs, bounds, tune=False, mat_poly=None):
         blobs = [b_ for b_ in cal.finger_blobs(img_open, img) if np.linalg.norm(b_[1] - (u, v)) < 110]
         note = "fingers not found"
         if blobs:
-            m = min(blobs, key=lambda b_: np.linalg.norm(b_[1] - (u, v)))[0]
+            m, c0, _ = min(blobs, key=lambda b_: np.linalg.norm(b_[1] - (u, v)))
+            m = cal.merge_fingers(m, c0, blobs)
             tu, tv = cal.tip_from_mask(m, (u - ub, v - vb))
             sx, sy = mv.cm.pixel_to_robot(tu, tv, z)
             cmd.append((x, y)); seen.append((sx, sy))
@@ -1071,6 +1112,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--shape", default="all", help="circle / square / hexagon / triangle / all")
     ap.add_argument("--detect-only", action="store_true")
+    ap.add_argument("--save-holes", action="store_true",
+                    help="detect the holes and store them in config/detected_holes.yaml (run_calibration.sh does this)")
     ap.add_argument("--plan-only", action="store_true")
     ap.add_argument("--suggest-layout", action="store_true", help="draw where to stand the pegs for the best results (empty mat)")
     ap.add_argument("--check-calibration", action="store_true", help="measure how well the calibration still fits (pegs can stay)")
@@ -1088,16 +1131,19 @@ def main():
     rec = Recorder(cam, os.path.join(run_dir, "run.mp4"))
     mv = Mover(arm, cam, cm, calib, rec, run_dir)
     holes, done, failed, lost, pending = {}, [], {}, [], None
-    parked_pegs = set()
-    holes_cache_path = os.path.join(T1, "config", "detected_holes.yaml")
-    if os.path.exists(holes_cache_path):
+    holes_file = os.path.join(T1, "config", "detected_holes.yaml")
+    if os.path.exists(holes_file) and not a.save_holes:      # written by ./run_calibration.sh with THIS calibration
         try:
-            with open(holes_cache_path) as f:
-                cached = yaml.safe_load(f)
-                if isinstance(cached, dict):
-                    holes.update(cached)
-        except Exception:
-            pass
+            with open(holes_file) as f:
+                saved = yaml.safe_load(f) or {}
+            if saved.get("calibrated_at") == calib.get("calibrated_at"):
+                holes.update({k: dict(v, xy=tuple(v["xy"]), side=v.get("side"), cnt=None) for k, v in saved["holes"].items()})
+                print(f"holes from {os.path.basename(holes_file)} (saved with the current calibration): {sorted(holes)}")
+            else:
+                print(f"{os.path.basename(holes_file)} belongs to an older calibration - not used (holes are detected live)")
+        except Exception as e:
+            print(f"could not read {holes_file}: {e}")
+    parked_pegs = set()
     try:
         forced = [x.strip() for x in a.order.split(",")] if a.order else None
         for rnd in range(1, 10):
@@ -1106,28 +1152,24 @@ def main():
             scan = cam.read_avg(4)
             mat_poly = find_mat(scan, cm)
             new_holes = find_holes(scan, cm)
-            for h in new_holes:                 # a hole hidden by a peg keeps its last seen position
-                sh = h["shape"]
-                y_expected = {"circle": (70, 160), "hexagon": (0, 75), "square": (-75, 0), "triangle": (-160, -70)}.get(sh)
-                if y_expected and not (y_expected[0] <= h["xy"][1] <= y_expected[1]):
-                    continue
-                if sh in holes and math.hypot(h["xy"][0] - holes[sh]["xy"][0], h["xy"][1] - holes[sh]["xy"][1]) > 25.0:
-                    continue
-                holes[sh] = h
-            if new_holes:
-                try:
-                    clean_holes = {
-                        k: {
-                            "shape": v["shape"],
-                            "xy": [float(v["xy"][0]), float(v["xy"][1])],
-                            "yaw": None if v.get("yaw") is None else float(v["yaw"])
-                        }
-                        for k, v in holes.items()
-                    }
-                    with open(holes_cache_path, "w") as f:
-                        yaml.safe_dump(clean_holes, f)
-                except Exception:
-                    pass
+            for h in new_holes:                 # live detection wins; a hole hidden by a peg keeps its saved / last position
+                old = holes.get(h["shape"])
+                if old is not None and math.hypot(h["xy"][0] - old["xy"][0], h["xy"][1] - old["xy"][1]) > 25.0:
+                    print(f"NOTE: the {h['shape']} hole is {math.hypot(h['xy'][0] - old['xy'][0], h['xy'][1] - old['xy'][1]):.0f} mm "
+                          "from where it was saved - was the board moved? Using the live position.")
+                holes[h["shape"]] = h
+            if a.save_holes:
+                if len(holes) < 4:
+                    print(f"only {len(holes)} of 4 holes seen ({sorted(holes)}) - nothing saved; is the board fully in view and empty?")
+                else:
+                    with open(holes_file, "w") as f:
+                        yaml.safe_dump({"calibrated_at": calib.get("calibrated_at"),
+                                        "holes": {k: {"shape": v["shape"], "xy": [float(v["xy"][0]), float(v["xy"][1])],
+                                                      "yaw": None if v.get("yaw") is None else float(v["yaw"]),
+                                                      "side": None if v.get("side") is None else float(v["side"])}
+                                                  for k, v in holes.items()}}, f, sort_keys=False)
+                    print(f"saved {len(holes)} holes to {holes_file}")
+                break
             board_poly = find_board(scan, cm)
             hl = list(holes.values())
             pegs = stable_pegs(cam, cm, mat_poly, hl, board_poly, find_pegs(scan, cm, mat_poly, hl, board_poly))
@@ -1208,6 +1250,8 @@ def main():
                 print(f"order: {best[2]} -> now {pl['label']}: path {pl['length']:.0f} mm, smallest free gap {pl['gap']:.0f} mm, "
                       f"fingers open {pl['width'] + pl['open_extra']:.0f} mm, grip {pl['grip']:.0f} mm up, tool {pl['tilt_pick']:.0f} deg at pick / {pl['tilt_release']:.0f} deg at release"
                       + ("" if not pl["jaw_mis"] and not pl["arrive_mis"] else f", jaws turn the peg {-pl['jaw_mis']:+.0f} deg, arrives {pl['arrive_mis']:+.0f} deg off the hole"))
+                for n_ in dict.fromkeys(pl.get("notes", [])):
+                    print(n_)
                 advise_upright(mv, pl)
             else:
                 blocked = [p for p in todo if "fingers" in reasons.get(p["shape"], "") or "path" in reasons.get(p["shape"], "")]
