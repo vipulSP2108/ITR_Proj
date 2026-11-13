@@ -18,6 +18,7 @@ def main():
     board = CharucoBoard(BoardSpec.from_cfg(cfg["board"]))
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from collect_data import build_sources
+    from buzzwire_calib.collector import KeyReader
     hub = None
     if any(str(c["source"]).startswith("ros") for c in cfg["cameras"].values()):
         from buzzwire_calib.ros_io import RosHub
@@ -28,37 +29,53 @@ def main():
     counts = {n: len(list((Path(a.out) / n).glob("*.png"))) for n in cams}
     for n in cams:
         (Path(a.out) / n).mkdir(parents=True, exist_ok=True)
-    print("SPACE = save a frame from every camera that currently sees the board;  q = quit")
+    has_display = bool(os.environ.get("DISPLAY"))
+    print("Keys: [SPACE or c] save frame from camera(s) seeing board  |  [q] quit")
+    if not has_display:
+        print("[NOTE] Headless mode: DISPLAY not detected. Capturing from terminal keys.")
     try:
-        while True:
-            tiles, det = [], {}
-            for n, c in cams.items():
-                img, _, _ = c.latest()
-                if img is None:
-                    tiles.append(np.zeros((360, 640, 3), np.uint8)); continue
-                cs, ids = board.detect(img)
-                det[n] = (img, cs, ids)
-                vis = img.copy()
-                board.draw(vis, cs, ids)
-                cv2.putText(vis, f"{n}: saved {counts[n]}  corners {0 if ids is None else len(ids)}", (10, 40),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 255), 3)
-                tiles.append(cv2.resize(vis, (640, 360)))
-            cv2.imshow("intrinsics capture", np.hstack(tiles))
-            k = cv2.waitKey(30) & 0xFF
-            if k == ord("q"):
-                break
-            if k == ord(" "):
-                for n, (img, cs, ids) in det.items():
-                    if ids is not None and len(ids) >= cfg["capture"]["min_corners"] + 4 and sharpness(img) > 20:
-                        cv2.imwrite(str(Path(a.out) / n / f"{int(time.time()*1000)}.png"), img)
-                        counts[n] += 1
-                        print(f"saved {n} ({counts[n]})")
-                    else:
-                        print(f"{n}: board not clearly visible - not saved")
+        with KeyReader() as kr:
+            while True:
+                tiles, det = [], {}
+                ch = kr.get()
+                for n, c in cams.items():
+                    img, _, _ = c.latest()
+                    if img is None:
+                        tiles.append(np.zeros((360, 640, 3), np.uint8)); continue
+                    cs, ids = board.detect(img)
+                    det[n] = (img, cs, ids)
+                    if has_display:
+                        vis = img.copy()
+                        board.draw(vis, cs, ids)
+                        cv2.putText(vis, f"{n}: saved {counts[n]}  corners {0 if ids is None else len(ids)}", (10, 40),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 255), 3)
+                        tiles.append(cv2.resize(vis, (640, 360)))
+                if has_display and tiles:
+                    cv2.imshow("intrinsics capture", np.hstack(tiles))
+                    k = cv2.waitKey(30) & 0xFF
+                    if ch is None and k != -1 and k != 255:
+                        ch = chr(k & 0xFF)
+                else:
+                    time.sleep(0.05)
+
+                if ch is None:
+                    continue
+                ch_l = ch.lower()
+                if ch_l == "q":
+                    break
+                if ch in (" ", "c", "\r", "\n"):
+                    for n, (img, cs, ids) in det.items():
+                        if ids is not None and len(ids) >= cfg["capture"]["min_corners"] + 4 and sharpness(img) > 20:
+                            cv2.imwrite(str(Path(a.out) / n / f"{int(time.time()*1000)}.png"), img)
+                            counts[n] += 1
+                            print(f"saved {n} (total {counts[n]})")
+                        else:
+                            print(f"{n}: board not clearly visible - not saved")
     finally:
         for c in cams.values():
             c.stop()
-        cv2.destroyAllWindows()
+        if has_display:
+            cv2.destroyAllWindows()
         if hub:
             hub.shutdown()
 

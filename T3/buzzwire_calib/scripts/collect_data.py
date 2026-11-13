@@ -121,25 +121,31 @@ Keys:  [{'SPACE' if keys['capture']==' ' else keys['capture']}] capture   [{keys
                 if ch is None:
                     continue
                 print()
-                if ch == keys["capture"] or ch == "\r":
+                ch_lower = ch.lower()
+                if ch == keys["capture"] or ch_lower == "c" or ch in ("\r", "\n"):
                     ok, msg = col.capture(force=False)
                     print(("OK  " if ok else "FAIL ") + msg)
-                elif ch == keys["next_matrix"]:
+                elif ch_lower == keys["next_matrix"].lower() or ch_lower == "m":
                     m = store.next_matrix()
                     print(f"-> now on matrix #{m}")
-                elif ch == keys["undo"]:
+                elif ch_lower == keys["undo"].lower():
                     cid = store.undo_last()
                     print(f"undid capture #{cid}" if cid is not None else "nothing to undo")
-                elif ch == keys["status"]:
+                elif ch_lower == keys["status"].lower():
                     print(col.status_line(), "\n", store.state())
-                elif ch == keys["finish"]:
+                elif ch_lower == keys["finish"].lower():
                     store.finish()
                     st = store.state()
-                    print(f"FINISHED. {st['n_captures']} captures over {len(st['per_matrix'])} matrices.")
-                    print(f"Next:  python3 scripts/calibrate_extrinsics.py --session {sdir}")
+                    print(f"\n================ SESSION FINISHED ================")
+                    print(f"Total captures: {st['n_captures']} over {len(st['per_matrix'])} matrices.")
+                    print(f"Distribution : {st['per_matrix']}")
+                    print(f"\nTo compute calibration now, run:")
+                    print(f"  python3 scripts/calibrate_extrinsics.py --session {sdir}")
+                    print(f"==================================================")
                     break
-                elif ch == keys["quit"]:
-                    print(f"Quit WITHOUT finishing. Resume with:  python3 scripts/collect_data.py --session {sdir}")
+                elif ch_lower == keys["quit"].lower():
+                    print(f"Quit WITHOUT finishing. Resume anytime with:")
+                    print(f"  python3 scripts/collect_data.py --session {sdir}")
                     break
     except KeyboardInterrupt:
         print(f"\nInterrupted - all saved data is safe. Resume with:  python3 scripts/collect_data.py --session {sdir}")

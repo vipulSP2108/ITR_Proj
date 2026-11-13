@@ -45,7 +45,12 @@ class CharucoBoard:
         """-> (corners Nx2 float32, ids N int32) or (None, None)."""
         gray = img if img.ndim == 2 else cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         if _NEW_API:
-            corners, ids, _, _ = self.detector.detectBoard(gray)
+            res = self.detector.detectBoard(gray)
+            if isinstance(res, (tuple, list)):
+                corners = res[0]
+                ids = res[1] if len(res) > 1 else None
+            else:
+                corners, ids = None, None
         else:
             mc, mi, _ = cv2.aruco.detectMarkers(gray, self.dict, parameters=self._params)
             if mi is None or len(mi) == 0:

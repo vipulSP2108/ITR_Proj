@@ -20,9 +20,12 @@ def main():
     ap.add_argument("--exclude", type=int, nargs="*", default=[], help="capture ids to ignore")
     a = ap.parse_args()
 
-    sdir = Path(a.session) if a.session else find_latest_session("data")
-    if sdir is None:
-        sys.exit("no session found")
+    data_root = Path("data")
+    if not data_root.exists():
+        data_root = Path(__file__).resolve().parent.parent / "data"
+    sdir = Path(a.session) if a.session else find_latest_session(data_root)
+    if sdir is None or not sdir.exists():
+        sys.exit(f"No session found at: {sdir or data_root}")
     store = SessionStore(sdir)
     cfg = load_config(a.config or (sdir / "config_used.yaml" if (sdir / "config_used.yaml").exists() else None))
     board = CharucoBoard(BoardSpec.from_cfg(cfg["board"]))

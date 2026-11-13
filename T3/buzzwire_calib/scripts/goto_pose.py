@@ -48,7 +48,12 @@ def main():
     if a.home:
         q_goal = np.zeros(len(names)); label = "HOME (all zeros)"
     else:
-        sdir = Path(a.session) if a.session else find_latest_session(cfg["paths"]["data_root"])
+        data_root = Path(cfg["paths"]["data_root"])
+        if not data_root.is_absolute():
+            data_root = Path(__file__).resolve().parent.parent / data_root
+        sdir = Path(a.session) if a.session else find_latest_session(data_root)
+        if sdir is None or not sdir.exists():
+            sys.exit(f"Session directory not found: {sdir or 'none in ' + str(data_root)}")
         store = SessionStore(sdir)
         st = store.state()
         if not st["live_ids"]:
