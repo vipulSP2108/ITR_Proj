@@ -1,10 +1,18 @@
 # Task 1 Video Submissions: OpenMANIPULATOR-X Peg Sorting
 
-This folder is the designated upload location for Task 1 video recordings.
+This folder is the designated upload location and repository guide for Task 1 video recordings.
 
 ---
 
-## 1. Designated File Names & Existing Recorded Runs
+## 1. Cloud Video Archive & Demonstration Links
+
+* **Google Drive Full-Resolution Archive**:
+  [Task 1 Google Drive Video Folder](https://drive.google.com/drive/folders/1UufguEVD1WDDrdQYMmFn4csoTbAUtxeu?usp=sharing)
+  *(Contains full uncompressed high-framerate recordings, camera takes, and extended multi-peg runs).*
+
+---
+
+## 2. Designated File Names & Existing Recorded Runs
 
 Each recorded run folder is modularized into `video/` (continuous MP4 video) and `images/` (sequential stage photos, motion plans, and workspace scans):
 
@@ -16,7 +24,7 @@ Each recorded run folder is modularized into `video/` (continuous MP4 video) and
 
 ---
 
-## 2. Recording & Camera Framing Guidelines
+## 3. Recording & Camera Framing Guidelines
 
 * **Framing & View**:
   - Show a wide, stable angle capturing the **entire OpenMANIPULATOR-X arm**, the **overhead Intel RealSense camera**, and the **green sorting mat** with all pegs and sockets visible.
