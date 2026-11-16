@@ -6,9 +6,11 @@ This folder is the designated upload location and repository guide for Task 1 vi
 
 ## 1. Cloud Video Archive & Demonstration Links
 
-* **Google Drive Full-Resolution Archive**:
-  [Task 1 Google Drive Video Folder](https://drive.google.com/drive/folders/1UufguEVD1WDDrdQYMmFn4csoTbAUtxeu?usp=sharing)
-  *(Contains full uncompressed high-framerate recordings, raw mobile camera takes, and extended multi-peg runs).*
+> [!TIP]
+> **Video Playback Notice**: If any videos do not open or play directly within GitHub's web interface (due to browser codec handling or file size limits), please use the Google Drive mirror below to stream or download all recordings:
+> * **Task 1 Google Drive Video Folder**:
+>   [Task 1 Google Drive Video Folder](https://drive.google.com/drive/folders/1w97ohjbUqfRgVt0oeY_ZzWaCp0gXDqxF?usp=sharing)
+>   *(Contains all full uncompressed high-framerate recordings, raw mobile camera takes, and extended multi-peg runs).*
 
 ---
 
@@ -51,7 +53,7 @@ To demonstrate the **complete autonomy**, continuous timeline, and authenticity 
 * **In-Repository Version**:
   - The mobile timer recording [`video/ExternalMobile_ClockTimerProof_20261112_130526.mp4`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1/videos/OneGO_20261112_130525/video/ExternalMobile_ClockTimerProof_20261112_130526.mp4) has been encoded with high-efficiency hardware H.264 at $1080\text{p60}$ ($48\text{ MB}$, under GitHub's $50\text{ MB}$ streaming threshold). This ensures instant in-browser playback on GitHub without requiring external players or Git LFS setup.
 * **Raw Master Cloud Archive**:
-  - The original uncompressed $628\text{ MB}$ raw camera recording ($28.3\text{ Mbps}$ mobile master) is preserved in the [Task 1 Google Drive Folder](https://drive.google.com/drive/folders/1UufguEVD1WDDrdQYMmFn4csoTbAUtxeu?usp=sharing).
+  - The original uncompressed $628\text{ MB}$ raw camera recording ($28.3\text{ Mbps}$ mobile master) is preserved in the [Task 1 Google Drive Folder](https://drive.google.com/drive/folders/1w97ohjbUqfRgVt0oeY_ZzWaCp0gXDqxF?usp=sharing).
 
 ---
 

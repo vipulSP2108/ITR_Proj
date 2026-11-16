@@ -4,11 +4,17 @@ This directory hosts recorded video demonstrations, benchmark execution logs, an
 
 ---
 
-## 1. Online Video Demonstrations & Playlist
+## 1. Online Video Demonstrations & Cloud Mirrors
 
 * **YouTube Demonstration Playlist**:
   [Task 3 Autonomous Buzz Wire Navigation Playlist](https://www.youtube.com/playlist?list=PLaEtGsMR43mE)
   *(Includes full continuous runs on the physical robot; the 3rd video in this playlist demonstrates our high-speed optimal traversal run).*
+* **Google Drive Video Archive & Mirror**:
+  [Task 3 Google Drive Video Folder](https://drive.google.com/drive/folders/1EXRZe4w5mSe-1CLaY_V7ebzJs83DLXgH?usp=sharing)
+  *(Contains all full-resolution master video files and benchmark recordings).*
+
+> [!TIP]
+> **Video Playback Notice**: If any videos do not open or play directly within GitHub's web interface (due to file size limits or browser codec handling), please use the Google Drive link or YouTube playlist above to view all runs.
 
 ---
 

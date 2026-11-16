@@ -42,7 +42,9 @@ To eliminate any doubt regarding autonomous operation and ensure full academic i
 
 ---
 
-## 3. High-Resolution Full Archive
+## 3. High-Resolution Full Archive & Video Mirror
 
-The uncompressed $628\text{ MB}$ master camera recording is archived in the project Google Drive:
-* [Task 1 Google Drive Cloud Archive](https://drive.google.com/drive/folders/1UufguEVD1WDDrdQYMmFn4csoTbAUtxeu?usp=sharing)
+> [!TIP]
+> If any of the in-repository video recordings do not open or play directly in your browser, please access or stream the full recordings from the Google Drive mirror:
+> * [Task 1 Google Drive Cloud Archive & Video Mirror](https://drive.google.com/drive/folders/1w97ohjbUqfRgVt0oeY_ZzWaCp0gXDqxF?usp=sharing)
+> *(Includes the full uncompressed $628\text{ MB}$ raw camera recording alongside all run videos).*
