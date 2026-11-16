@@ -17,7 +17,7 @@ This directory hosts recorded video demonstrations, benchmark execution logs, an
 The terminal logs below record the robot controller's live real-time benchmark executions on the physical Addverb HEAL arm, demonstrating the **minimum traversal times** achieved on the physical wire while preserving zero electrical continuity contacts:
 
 ### A. Record Fastest Run: 99.8 Seconds (`--speed 1.0`)
-* **Benchmark Screenshot**: [`fastest.png`](file:///Users/aai/Desktop/ITR_Proj/T3%202/videos/fastest.png)
+* **Benchmark Screenshot**: [`terminal_benchmark_speed1.0_99.8s.png`](file:///Users/aai/Desktop/ITR_Proj/T3%202/videos/terminal_benchmark_speed1.0_99.8s.png)
 
 ```text
 IITGN-robotics$ ./buzzwire_run.sh lr --speed 1.0
@@ -35,7 +35,7 @@ DONE in 99.8 s. Worst tracking error 5.23 mm
 ```
 
 ### B. Second Fastest Benchmark Run: 101.8 Seconds (`--speed 0.65`)
-* **Benchmark Screenshot**: [`2ndmostfastest.png`](file:///Users/aai/Desktop/ITR_Proj/T3%202/videos/2ndmostfastest.png)
+* **Benchmark Screenshot**: [`terminal_benchmark_speed0.65_101.8s.png`](file:///Users/aai/Desktop/ITR_Proj/T3%202/videos/terminal_benchmark_speed0.65_101.8s.png)
 
 ```text
 IITGN-robotics$ ./buzzwire_run.sh lr --speed 0.65
@@ -55,7 +55,7 @@ DONE in 101.8 s. Worst tracking error 5.47 mm
 ### Benchmark Comparison Table
 | Benchmark Metric | Fastest Run (`--speed 1.0`) | 2nd Fastest Run (`--speed 0.65`) | Clearance & Safety Margin |
 | :--- | :--- | :--- | :--- |
-| **Proof Screenshot** | [`fastest.png`](file:///Users/aai/Desktop/ITR_Proj/T3%202/videos/fastest.png) | [`2ndmostfastest.png`](file:///Users/aai/Desktop/ITR_Proj/T3%202/videos/2ndmostfastest.png) | High-resolution terminal capture |
+| **Proof Screenshot** | [`terminal_benchmark_speed1.0_99.8s.png`](file:///Users/aai/Desktop/ITR_Proj/T3%202/videos/terminal_benchmark_speed1.0_99.8s.png) | [`terminal_benchmark_speed0.65_101.8s.png`](file:///Users/aai/Desktop/ITR_Proj/T3%202/videos/terminal_benchmark_speed0.65_101.8s.png) | High-resolution terminal capture |
 | **Total 3D Arc Traversal** | **$1246\text{ mm}$** | **$1246\text{ mm}$** | Full wire span from L-anchor to R-goal |
 | **Waypoint Density** | **$630\text{ points}$** | **$630\text{ points}$** | $\approx 1.98\text{ mm}$ per waypoint |
 | **Physical Traversal Time**| **$99.8\text{ s}$** ($1\text{ min } 39.8\text{ s}$) | **$101.8\text{ s}$** ($1\text{ min } 41.8\text{ s}$) | Sub-100s record achieved |
