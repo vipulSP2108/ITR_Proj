@@ -1,0 +1,4 @@
+numpy
+scipy
+pyyaml
+opencv-contrib-python>=4.7   # needs the aruco module (contrib). On ROS machines: pip install opencv-contrib-python

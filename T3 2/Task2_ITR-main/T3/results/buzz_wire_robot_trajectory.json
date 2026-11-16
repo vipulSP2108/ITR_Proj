@@ -1,0 +1,763 @@
+{
+  "metadata": {
+    "source": "Buzz Wire photogrammetric calibration",
+    "robot": "Addverb HEAL 6-DOF Cobot",
+    "course_total_span_mm": 288.0,
+    "tube_safe_radius_mm": 9.0,
+    "n_waypoints": 31
+  },
+  "T_base_ground": {
+    "matrix": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        0.4
+      ],
+      [
+        0.0,
+        1.0,
+        0.0,
+        -0.144
+      ],
+      [
+        0.0,
+        0.0,
+        1.0,
+        0.05
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "translation_xyz_m": [
+      0.4,
+      -0.144,
+      0.05
+    ],
+    "quaternion_xyzw": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  },
+  "waypoints": [
+    {
+      "index": 0,
+      "label": "WP_00_START_SAFE",
+      "segment_type": "linear_approach",
+      "recommended_speed_m_s": 0.012,
+      "tangent_angle_deg": -71.8,
+      "position_base_m": [
+        0.408,
+        -0.144,
+        0.1915
+      ],
+      "quaternion_base_xyzw": [
+        0.81001,
+        0.0,
+        0.58641,
+        0.0
+      ],
+      "ground_position_mm": [
+        8.0,
+        0.0,
+        141.5
+      ]
+    },
+    {
+      "index": 1,
+      "label": "WP_01_LEG1_MID",
+      "segment_type": "linear_leg",
+      "recommended_speed_m_s": 0.025,
+      "tangent_angle_deg": -71.8,
+      "position_base_m": [
+        0.435,
+        -0.144,
+        0.138
+      ],
+      "quaternion_base_xyzw": [
+        0.81001,
+        0.0,
+        0.58641,
+        0.0
+      ],
+      "ground_position_mm": [
+        35.0,
+        0.0,
+        88.0
+      ]
+    },
+    {
+      "index": 2,
+      "label": "WP_02_V1_ENTRY",
+      "segment_type": "bend_entry",
+      "recommended_speed_m_s": 0.01,
+      "tangent_angle_deg": -71.8,
+      "position_base_m": [
+        0.4375,
+        -0.144,
+        0.0915
+      ],
+      "quaternion_base_xyzw": [
+        0.81001,
+        0.0,
+        0.58641,
+        0.0
+      ],
+      "ground_position_mm": [
+        37.5,
+        0.0,
+        41.5
+      ]
+    },
+    {
+      "index": 3,
+      "label": "WP_03_V1_APEX",
+      "segment_type": "valley_apex",
+      "recommended_speed_m_s": 0.008,
+      "tangent_angle_deg": 0.0,
+      "position_base_m": [
+        0.4485,
+        -0.144,
+        0.088
+      ],
+      "quaternion_base_xyzw": [
+        0.70711,
+        0.0,
+        0.70711,
+        0.0
+      ],
+      "ground_position_mm": [
+        48.5,
+        0.0,
+        38.0
+      ]
+    },
+    {
+      "index": 4,
+      "label": "WP_04_V1_EXIT",
+      "segment_type": "bend_exit",
+      "recommended_speed_m_s": 0.01,
+      "tangent_angle_deg": 79.4,
+      "position_base_m": [
+        0.4595,
+        -0.144,
+        0.0915
+      ],
+      "quaternion_base_xyzw": [
+        0.0924,
+        0.0,
+        0.99572,
+        0.0
+      ],
+      "ground_position_mm": [
+        59.5,
+        0.0,
+        41.5
+      ]
+    },
+    {
+      "index": 5,
+      "label": "WP_05_LEG2_MID",
+      "segment_type": "linear_leg",
+      "recommended_speed_m_s": 0.025,
+      "tangent_angle_deg": 79.4,
+      "position_base_m": [
+        0.469,
+        -0.144,
+        0.138
+      ],
+      "quaternion_base_xyzw": [
+        0.0924,
+        0.0,
+        0.99572,
+        0.0
+      ],
+      "ground_position_mm": [
+        69.0,
+        0.0,
+        88.0
+      ]
+    },
+    {
+      "index": 6,
+      "label": "WP_06_P1_ENTRY",
+      "segment_type": "bend_entry",
+      "recommended_speed_m_s": 0.01,
+      "tangent_angle_deg": 79.4,
+      "position_base_m": [
+        0.4782,
+        -0.144,
+        0.1926
+      ],
+      "quaternion_base_xyzw": [
+        0.0924,
+        0.0,
+        0.99572,
+        0.0
+      ],
+      "ground_position_mm": [
+        78.2,
+        0.0,
+        142.6
+      ]
+    },
+    {
+      "index": 7,
+      "label": "WP_07_P1_APEX",
+      "segment_type": "peak_apex",
+      "recommended_speed_m_s": 0.009,
+      "tangent_angle_deg": 0.0,
+      "position_base_m": [
+        0.491,
+        -0.144,
+        0.195
+      ],
+      "quaternion_base_xyzw": [
+        0.70711,
+        0.0,
+        0.70711,
+        0.0
+      ],
+      "ground_position_mm": [
+        91.0,
+        0.0,
+        145.0
+      ]
+    },
+    {
+      "index": 8,
+      "label": "WP_08_P1_EXIT",
+      "segment_type": "bend_exit",
+      "recommended_speed_m_s": 0.01,
+      "tangent_angle_deg": -86.8,
+      "position_base_m": [
+        0.5038,
+        -0.144,
+        0.1926
+      ],
+      "quaternion_base_xyzw": [
+        0.99961,
+        0.0,
+        0.0279,
+        0.0
+      ],
+      "ground_position_mm": [
+        103.8,
+        0.0,
+        142.6
+      ]
+    },
+    {
+      "index": 9,
+      "label": "WP_09_LEG3_MID",
+      "segment_type": "linear_leg",
+      "recommended_speed_m_s": 0.028,
+      "tangent_angle_deg": -86.8,
+      "position_base_m": [
+        0.507,
+        -0.144,
+        0.138
+      ],
+      "quaternion_base_xyzw": [
+        0.99961,
+        0.0,
+        0.0279,
+        0.0
+      ],
+      "ground_position_mm": [
+        107.0,
+        0.0,
+        88.0
+      ]
+    },
+    {
+      "index": 10,
+      "label": "WP_10_V2_ENTRY",
+      "segment_type": "bend_entry",
+      "recommended_speed_m_s": 0.01,
+      "tangent_angle_deg": -86.8,
+      "position_base_m": [
+        0.51,
+        -0.144,
+        0.0847
+      ],
+      "quaternion_base_xyzw": [
+        0.99961,
+        0.0,
+        0.0279,
+        0.0
+      ],
+      "ground_position_mm": [
+        110.0,
+        0.0,
+        34.7
+      ]
+    },
+    {
+      "index": 11,
+      "label": "WP_11_V2_APEX",
+      "segment_type": "valley_apex",
+      "recommended_speed_m_s": 0.009,
+      "tangent_angle_deg": 0.0,
+      "position_base_m": [
+        0.5225,
+        -0.144,
+        0.084
+      ],
+      "quaternion_base_xyzw": [
+        0.70711,
+        0.0,
+        0.70711,
+        0.0
+      ],
+      "ground_position_mm": [
+        122.5,
+        0.0,
+        34.0
+      ]
+    },
+    {
+      "index": 12,
+      "label": "WP_12_V2_EXIT",
+      "segment_type": "bend_exit",
+      "recommended_speed_m_s": 0.01,
+      "tangent_angle_deg": 84.3,
+      "position_base_m": [
+        0.535,
+        -0.144,
+        0.0847
+      ],
+      "quaternion_base_xyzw": [
+        0.0497,
+        0.0,
+        0.99876,
+        0.0
+      ],
+      "ground_position_mm": [
+        135.0,
+        0.0,
+        34.7
+      ]
+    },
+    {
+      "index": 13,
+      "label": "WP_13_LEG4_MID",
+      "segment_type": "linear_leg",
+      "recommended_speed_m_s": 0.028,
+      "tangent_angle_deg": 84.3,
+      "position_base_m": [
+        0.541,
+        -0.144,
+        0.138
+      ],
+      "quaternion_base_xyzw": [
+        0.0497,
+        0.0,
+        0.99876,
+        0.0
+      ],
+      "ground_position_mm": [
+        141.0,
+        0.0,
+        88.0
+      ]
+    },
+    {
+      "index": 14,
+      "label": "WP_14_P2_ENTRY",
+      "segment_type": "bend_entry",
+      "recommended_speed_m_s": 0.011,
+      "tangent_angle_deg": 84.3,
+      "position_base_m": [
+        0.5471,
+        -0.144,
+        0.2056
+      ],
+      "quaternion_base_xyzw": [
+        0.0497,
+        0.0,
+        0.99876,
+        0.0
+      ],
+      "ground_position_mm": [
+        147.1,
+        0.0,
+        155.6
+      ]
+    },
+    {
+      "index": 15,
+      "label": "WP_15_P2_APEX",
+      "segment_type": "peak_apex",
+      "recommended_speed_m_s": 0.01,
+      "tangent_angle_deg": 0.0,
+      "position_base_m": [
+        0.561,
+        -0.144,
+        0.207
+      ],
+      "quaternion_base_xyzw": [
+        0.70711,
+        0.0,
+        0.70711,
+        0.0
+      ],
+      "ground_position_mm": [
+        161.0,
+        0.0,
+        157.0
+      ]
+    },
+    {
+      "index": 16,
+      "label": "WP_16_P2_EXIT",
+      "segment_type": "bend_exit",
+      "recommended_speed_m_s": 0.011,
+      "tangent_angle_deg": -86.4,
+      "position_base_m": [
+        0.5749,
+        -0.144,
+        0.2056
+      ],
+      "quaternion_base_xyzw": [
+        0.99951,
+        0.0,
+        0.0314,
+        0.0
+      ],
+      "ground_position_mm": [
+        174.9,
+        0.0,
+        155.6
+      ]
+    },
+    {
+      "index": 17,
+      "label": "WP_17_LEG5_MID",
+      "segment_type": "linear_leg",
+      "recommended_speed_m_s": 0.028,
+      "tangent_angle_deg": -86.4,
+      "position_base_m": [
+        0.579,
+        -0.144,
+        0.138
+      ],
+      "quaternion_base_xyzw": [
+        0.99951,
+        0.0,
+        0.0314,
+        0.0
+      ],
+      "ground_position_mm": [
+        179.0,
+        0.0,
+        88.0
+      ]
+    },
+    {
+      "index": 18,
+      "label": "WP_18_V3_ENTRY",
+      "segment_type": "bend_entry",
+      "recommended_speed_m_s": 0.01,
+      "tangent_angle_deg": -86.4,
+      "position_base_m": [
+        0.5825,
+        -0.144,
+        0.0763
+      ],
+      "quaternion_base_xyzw": [
+        0.99951,
+        0.0,
+        0.0314,
+        0.0
+      ],
+      "ground_position_mm": [
+        182.5,
+        0.0,
+        26.3
+      ]
+    },
+    {
+      "index": 19,
+      "label": "WP_19_V3_APEX",
+      "segment_type": "valley_apex",
+      "recommended_speed_m_s": 0.009,
+      "tangent_angle_deg": 0.0,
+      "position_base_m": [
+        0.596,
+        -0.144,
+        0.0755
+      ],
+      "quaternion_base_xyzw": [
+        0.70711,
+        0.0,
+        0.70711,
+        0.0
+      ],
+      "ground_position_mm": [
+        196.0,
+        0.0,
+        25.5
+      ]
+    },
+    {
+      "index": 20,
+      "label": "WP_20_V3_EXIT",
+      "segment_type": "bend_exit",
+      "recommended_speed_m_s": 0.01,
+      "tangent_angle_deg": 84.8,
+      "position_base_m": [
+        0.6095,
+        -0.144,
+        0.0763
+      ],
+      "quaternion_base_xyzw": [
+        0.0454,
+        0.0,
+        0.99897,
+        0.0
+      ],
+      "ground_position_mm": [
+        209.5,
+        0.0,
+        26.3
+      ]
+    },
+    {
+      "index": 21,
+      "label": "WP_21_LEG6_MID",
+      "segment_type": "linear_leg",
+      "recommended_speed_m_s": 0.028,
+      "tangent_angle_deg": 84.8,
+      "position_base_m": [
+        0.615,
+        -0.144,
+        0.138
+      ],
+      "quaternion_base_xyzw": [
+        0.0454,
+        0.0,
+        0.99897,
+        0.0
+      ],
+      "ground_position_mm": [
+        215.0,
+        0.0,
+        88.0
+      ]
+    },
+    {
+      "index": 22,
+      "label": "WP_22_P3_ENTRY",
+      "segment_type": "bend_entry",
+      "recommended_speed_m_s": 0.01,
+      "tangent_angle_deg": 84.8,
+      "position_base_m": [
+        0.6211,
+        -0.144,
+        0.2008
+      ],
+      "quaternion_base_xyzw": [
+        0.0454,
+        0.0,
+        0.99897,
+        0.0
+      ],
+      "ground_position_mm": [
+        221.1,
+        0.0,
+        150.8
+      ]
+    },
+    {
+      "index": 23,
+      "label": "WP_23_P3_APEX",
+      "segment_type": "peak_apex",
+      "recommended_speed_m_s": 0.009,
+      "tangent_angle_deg": 0.0,
+      "position_base_m": [
+        0.6345,
+        -0.144,
+        0.202
+      ],
+      "quaternion_base_xyzw": [
+        0.70711,
+        0.0,
+        0.70711,
+        0.0
+      ],
+      "ground_position_mm": [
+        234.5,
+        0.0,
+        152.0
+      ]
+    },
+    {
+      "index": 24,
+      "label": "WP_24_P3_EXIT",
+      "segment_type": "bend_exit",
+      "recommended_speed_m_s": 0.01,
+      "tangent_angle_deg": -90.0,
+      "position_base_m": [
+        0.648,
+        -0.144,
+        0.2008
+      ],
+      "quaternion_base_xyzw": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "ground_position_mm": [
+        248.0,
+        0.0,
+        150.8
+      ]
+    },
+    {
+      "index": 25,
+      "label": "WP_25_LEG7_MID",
+      "segment_type": "linear_leg",
+      "recommended_speed_m_s": 0.028,
+      "tangent_angle_deg": -90.0,
+      "position_base_m": [
+        0.648,
+        -0.144,
+        0.138
+      ],
+      "quaternion_base_xyzw": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "ground_position_mm": [
+        248.0,
+        0.0,
+        88.0
+      ]
+    },
+    {
+      "index": 26,
+      "label": "WP_26_V4_ENTRY",
+      "segment_type": "bend_entry",
+      "recommended_speed_m_s": 0.009,
+      "tangent_angle_deg": -90.0,
+      "position_base_m": [
+        0.648,
+        -0.144,
+        0.084
+      ],
+      "quaternion_base_xyzw": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "ground_position_mm": [
+        248.0,
+        0.0,
+        34.0
+      ]
+    },
+    {
+      "index": 27,
+      "label": "WP_27_V4_APEX",
+      "segment_type": "valley_apex",
+      "recommended_speed_m_s": 0.008,
+      "tangent_angle_deg": 0.0,
+      "position_base_m": [
+        0.66,
+        -0.144,
+        0.083
+      ],
+      "quaternion_base_xyzw": [
+        0.70711,
+        0.0,
+        0.70711,
+        0.0
+      ],
+      "ground_position_mm": [
+        260.0,
+        0.0,
+        33.0
+      ]
+    },
+    {
+      "index": 28,
+      "label": "WP_28_V4_EXIT",
+      "segment_type": "bend_exit",
+      "recommended_speed_m_s": 0.009,
+      "tangent_angle_deg": 81.6,
+      "position_base_m": [
+        0.6718,
+        -0.144,
+        0.0845
+      ],
+      "quaternion_base_xyzw": [
+        0.0732,
+        0.0,
+        0.99732,
+        0.0
+      ],
+      "ground_position_mm": [
+        271.8,
+        0.0,
+        34.5
+      ]
+    },
+    {
+      "index": 29,
+      "label": "WP_29_LEG8_MID",
+      "segment_type": "linear_leg",
+      "recommended_speed_m_s": 0.025,
+      "tangent_angle_deg": 81.6,
+      "position_base_m": [
+        0.674,
+        -0.144,
+        0.138
+      ],
+      "quaternion_base_xyzw": [
+        0.0732,
+        0.0,
+        0.99732,
+        0.0
+      ],
+      "ground_position_mm": [
+        274.0,
+        0.0,
+        88.0
+      ]
+    },
+    {
+      "index": 30,
+      "label": "WP_30_GOAL_SAFE",
+      "segment_type": "linear_goal",
+      "recommended_speed_m_s": 0.01,
+      "tangent_angle_deg": 81.6,
+      "position_base_m": [
+        0.68,
+        -0.144,
+        0.1915
+      ],
+      "quaternion_base_xyzw": [
+        0.0732,
+        0.0,
+        0.99732,
+        0.0
+      ],
+      "ground_position_mm": [
+        280.0,
+        0.0,
+        141.5
+      ]
+    }
+  ]
+}

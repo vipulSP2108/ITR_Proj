@@ -1,0 +1,12 @@
+{
+  "n_input_segments": 1,
+  "n_valid_segments": 1,
+  "segment_order": [
+    0
+  ],
+  "n_raw_merged": 2303,
+  "n_resampled": 686,
+  "total_arc_m": 1.3082,
+  "gap_bridges": 0,
+  "warnings": []
+}

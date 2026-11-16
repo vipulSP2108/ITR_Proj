@@ -1,0 +1,262 @@
+<title>Buzz Wire Trajectory</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --bg: #0c0e12; --bg-card: #151820; --bg-card-hover: #1c2030; --border: #252a38;
+  --fg: #e8eaf0; --fg-sec: #8b90a0; --fg-muted: #555a6e;
+  --accent: #3b8bff; --accent-dim: rgba(59,139,255,0.12);
+  --show: #3b8bff; --balanced: #1baf7a; --fast: #eb6834; --actual: #eda100;
+  --danger: #e34948; --peak: #e87ba4; --valley: #6250d6;
+  --wire: #d4a574; --wire-dim: rgba(212,165,116,0.15);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f5f5f2; --bg-card: #ffffff; --bg-card-hover: #fafaf8; --border: #e0ddd6;
+    --fg: #1a1a18; --fg-sec: #5c5a52; --fg-muted: #9b9890;
+    --accent: #2a6fd4; --accent-dim: rgba(42,111,212,0.08);
+    --show: #2a6fd4; --balanced: #0e8a5e; --fast: #d05020; --actual: #c98500;
+    --danger: #cc3030; --peak: #c04878; --valley: #5040b8;
+    --wire: #a07848; --wire-dim: rgba(160,120,72,0.12);
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #f5f5f2; --bg-card: #ffffff; --bg-card-hover: #fafaf8; --border: #e0ddd6;
+  --fg: #1a1a18; --fg-sec: #5c5a52; --fg-muted: #9b9890;
+  --accent: #2a6fd4; --accent-dim: rgba(42,111,212,0.08);
+  --show: #2a6fd4; --balanced: #0e8a5e; --fast: #d05020; --actual: #c98500;
+  --danger: #cc3030; --peak: #c04878; --valley: #5040b8;
+  --wire: #a07848; --wire-dim: rgba(160,120,72,0.12);
+  color-scheme: light;
+}
+body { background: var(--bg); color: var(--fg); font-family: 'Inter', system-ui, sans-serif;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0; line-height: 1.5; }
+* { box-sizing: border-box; margin: 0; }
+h1,h2,h3 { font-family: 'Space Grotesk', sans-serif; text-wrap: balance; }
+.mono { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+.container { max-width: 1100px; margin: 0 auto; padding: 28px 0 48px; display: flex; flex-direction: column; gap: 20px; }
+.header { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+.badge { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 8px; border-radius: 4px; }
+.badge-ok { background: var(--accent-dim); color: var(--accent); }
+.badge-warn { background: rgba(227,73,72,0.12); color: var(--danger); }
+.badge-gold { background: rgba(237,161,0,0.12); color: var(--actual); }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+.stat-label { font-size: 0.68rem; font-weight: 500; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+.stat-value { font-size: 1.35rem; font-weight: 600; font-family: 'Space Grotesk', sans-serif; }
+.stat-delta { font-size: 0.72rem; color: var(--fg-sec); margin-top: 2px; }
+
+.section-title { font-size: 0.95rem; font-weight: 600; color: var(--fg-sec); margin-top: 8px; }
+
+.chart-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; overflow-x: auto; min-width: 0; }
+.chart-title { font-size: 0.85rem; font-weight: 600; margin-bottom: 12px; }
+.chart-sub { font-size: 0.7rem; color: var(--fg-muted); font-weight: 400; margin-left: 8px; }
+svg text { font-family: 'Inter', sans-serif; }
+
+.tooltip { position: fixed; pointer-events: none; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; font-size: 0.75rem; z-index: 100; box-shadow: 0 4px 20px rgba(0,0,0,0.3); max-width: 280px; line-height: 1.5; display: none; }
+.tt-label { font-weight: 600; margin-bottom: 4px; } .tt-row { display: flex; justify-content: space-between; gap: 14px; }
+.tt-key { color: var(--fg-sec); } .tt-val { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; }
+
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.72rem; color: var(--fg-sec); }
+.legend-item { display: flex; align-items: center; gap: 5px; }
+.legend-swatch { width: 12px; height: 3px; border-radius: 2px; }
+
+.dual { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 680px) { .dual { grid-template-columns: 1fr; } }
+
+.seg-table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
+.seg-table th { text-align: left; font-weight: 500; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.65rem; padding: 7px 8px; border-bottom: 1px solid var(--border); }
+.seg-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+.seg-table tr:hover td { background: var(--bg-card-hover); }
+
+@media (max-width: 600px) { .container { padding: 14px 0 28px; gap: 14px; } .header h1 { font-size: 1.2rem; } .stats { grid-template-columns: repeat(2, 1fr); } .stat-value { font-size: 1.1rem; } }
+</style>
+
+<div class="container">
+  <div class="header">
+    <h1>Buzz Wire Trajectory</h1>
+    <span class="badge badge-ok">L → R Complete</span>
+    <span class="badge badge-warn">1 Touch</span>
+    <span class="badge badge-gold">37 min run</span>
+  </div>
+
+  <!-- ACTUAL RUN STATS -->
+  <div class="section-title">Recorded Run (session_20261115)</div>
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Total Time</div><div class="stat-value mono">37.0<span style="font-size:0.7em">min</span></div><div class="stat-delta">2221s across 5 segments</div></div>
+    <div class="stat"><div class="stat-label">Arc Length</div><div class="stat-value mono">2310<span style="font-size:0.7em">mm</span></div><div class="stat-delta">planned: 1098mm path</div></div>
+    <div class="stat"><div class="stat-label">Avg Speed</div><div class="stat-value mono">1.0<span style="font-size:0.7em">mm/s</span></div><div class="stat-delta">planned: 14.2 mm/s</div></div>
+    <div class="stat"><div class="stat-label">Max Speed</div><div class="stat-value mono">26<span style="font-size:0.7em">mm/s</span></div><div class="stat-delta">on straight legs</div></div>
+    <div class="stat"><div class="stat-label">Efficiency</div><div class="stat-value mono" style="color:var(--actual)">7<span style="font-size:0.7em">%</span></div><div class="stat-delta">of planned speed</div></div>
+    <div class="stat"><div class="stat-label">Wire Touches</div><div class="stat-value mono">0+1</div><div class="stat-delta">0 in data, 1 resume</div></div>
+  </div>
+
+  <!-- PLANNED PROFILES STATS -->
+  <div class="section-title">Optimized Speed Profiles</div>
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Show Profile</div><div class="stat-value mono" style="color:var(--show)">68.6<span style="font-size:0.7em">s</span></div><div class="stat-delta">avg 14.2 mm/s baseline</div></div>
+    <div class="stat"><div class="stat-label">Balanced</div><div class="stat-value mono" style="color:var(--balanced)">56.6<span style="font-size:0.7em">s</span></div><div class="stat-delta">17% faster, safe</div></div>
+    <div class="stat"><div class="stat-label">Fast</div><div class="stat-value mono" style="color:var(--fast)">48.4<span style="font-size:0.7em">s</span></div><div class="stat-delta">30% faster, accel-limited</div></div>
+    <div class="stat"><div class="stat-label">Min Bend R</div><div class="stat-value mono">11.5<span style="font-size:0.7em">mm</span></div><div class="stat-delta">κ=0.087 at V1</div></div>
+  </div>
+
+  <!-- WIRE COURSE -->
+  <div class="chart-card">
+    <div class="chart-title">Wire Course Profile <span class="chart-sub">planned waypoints (ground frame mm)</span></div>
+    <svg id="wireChart" width="100%" viewBox="0 0 1060 310"></svg>
+  </div>
+
+  <!-- ACTUAL SPEED vs PLANNED -->
+  <div class="dual">
+    <div class="chart-card">
+      <div class="chart-title">Actual Speed Distribution <span class="chart-sub">recorded mm/s</span></div>
+      <svg id="histChart" width="100%" viewBox="0 0 520 240"></svg>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Planned Speed Profiles <span class="chart-sub">mm/s along arc</span></div>
+      <svg id="speedChart" width="100%" viewBox="0 0 520 240"></svg>
+    </div>
+  </div>
+
+  <!-- ACTUAL SPEED ALONG ARC -->
+  <div class="chart-card">
+    <div class="chart-title">Actual Speed Along Path <span class="chart-sub">recorded run, mm/s vs arc length</span></div>
+    <svg id="actualSpeedChart" width="100%" viewBox="0 0 1060 240"></svg>
+  </div>
+
+  <!-- SEGMENT BREAKDOWN -->
+  <div class="chart-card">
+    <div class="chart-title">Segment Breakdown</div>
+    <table class="seg-table">
+      <thead><tr><th>Segment</th><th>Session</th><th>Time</th><th>Arc</th><th>Avg Speed</th><th>Max Speed</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">seg_0000</td><td>Old (11:34)</td><td class="mono">127.4s</td><td class="mono">394.7mm</td><td class="mono">3.1 mm/s</td><td class="mono">26.0</td><td>Initial traversal</td></tr>
+        <tr><td class="mono">seg_0001</td><td>Old</td><td class="mono">53.7s</td><td class="mono">15.1mm</td><td class="mono">0.3 mm/s</td><td class="mono">5.2</td><td style="color:var(--fg-muted)">Repositioning</td></tr>
+        <tr><td class="mono">seg_0002</td><td>Old</td><td class="mono">200.5s</td><td class="mono">219.5mm</td><td class="mono">1.1 mm/s</td><td class="mono">5.4</td><td>Slow traversal</td></tr>
+        <tr style="border-top:2px solid var(--border)"><td class="mono">seg_0000</td><td>New (12:22)</td><td class="mono">38.5s</td><td class="mono">42.5mm</td><td class="mono">1.1 mm/s</td><td class="mono">6.5</td><td style="color:var(--fg-muted)">Resume position</td></tr>
+        <tr><td class="mono">seg_0001</td><td>New</td><td class="mono">276.7s</td><td class="mono">178.1mm</td><td class="mono">0.6 mm/s</td><td class="mono">5.8</td><td>Careful traversal</td></tr>
+        <tr><td class="mono">seg_0002</td><td>New</td><td class="mono">255.1s</td><td class="mono">185.3mm</td><td class="mono">0.7 mm/s</td><td class="mono">5.8</td><td>Careful traversal</td></tr>
+        <tr><td class="mono" style="font-weight:600">seg_0003</td><td>New</td><td class="mono" style="font-weight:600">1361.6s</td><td class="mono" style="font-weight:600">1333.0mm</td><td class="mono">1.0 mm/s</td><td class="mono">6.5</td><td style="font-weight:600">Main run to goal</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- CALIBRATION NOTES -->
+  <div class="chart-card" style="border-left: 3px solid var(--actual);">
+    <div class="chart-title" style="color:var(--actual)">Calibration & Optimization Notes</div>
+    <div style="font-size:0.8rem; color:var(--fg-sec); display:flex; flex-direction:column; gap:8px;">
+      <div><strong style="color:var(--fg)">Speed gap:</strong> Robot ran at 7% of planned speed. 66% of samples under 5mm/s, only 4% above 10mm/s. The planned profiles (Show: 14.2, Fast: 20.6 mm/s avg) are 14x faster than actual.</div>
+      <div><strong style="color:var(--fg)">Straight legs:</strong> Actual max ~5mm/s on straights vs planned 25-28mm/s. Burst to 20-26mm/s in old seg_0000 shows the robot CAN go faster — velocity was software-limited.</div>
+      <div><strong style="color:var(--fg)">Bend behavior:</strong> 1-2 mm/s at bends vs planned 8-10mm/s. The tube_safe_radius of 9mm gives ample clearance for faster traversal.</div>
+      <div><strong style="color:var(--fg)">Scalable profiles:</strong> Show profile (68.6s) is the presentation target. Balanced (56.6s) is safe for demos. Fast (48.4s) with accel-limited transitions is the optimization target.</div>
+      <div><strong style="color:var(--fg)">To calibrate:</strong> Average the actual bend speeds (1-2 mm/s) with planned (8-10 mm/s) → start at 4-5 mm/s for bends, 12-15 mm/s for straights. Scale up in 25% increments.</div>
+    </div>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const WP = [{"i":0,"label":"WP_00_START","x":8,"z":141.5,"arc":0,"curv":0,"tang":-71.8,"v_show":12,"v_fast":30,"v_bal":21},{"i":1,"label":"WP_01_LEG1","x":35,"z":88,"arc":59.9,"curv":0,"tang":-71.8,"v_show":25,"v_fast":40,"v_bal":32.5},{"i":2,"label":"WP_02_V1_E","x":37.5,"z":41.5,"arc":106.5,"curv":0.087,"tang":-71.8,"v_show":10,"v_fast":13,"v_bal":11.5},{"i":3,"label":"WP_03_V1_A","x":48.5,"z":38,"arc":118,"curv":0.087,"tang":0,"v_show":8,"v_fast":10.4,"v_bal":9.2},{"i":4,"label":"WP_04_V1_X","x":59.5,"z":41.5,"arc":129.6,"curv":0.087,"tang":79.4,"v_show":10,"v_fast":13,"v_bal":11.5},{"i":5,"label":"WP_05_LEG2","x":69,"z":88,"arc":177,"curv":0,"tang":79.4,"v_show":25,"v_fast":40,"v_bal":32.5},{"i":6,"label":"WP_06_P1_E","x":78.2,"z":142.6,"arc":232.4,"curv":0.077,"tang":79.4,"v_show":10,"v_fast":13,"v_bal":11.5},{"i":7,"label":"WP_07_P1_A","x":91,"z":145,"arc":245.4,"curv":0.077,"tang":0,"v_show":9,"v_fast":11.7,"v_bal":10.4},{"i":8,"label":"WP_08_P1_X","x":103.8,"z":142.6,"arc":258.5,"curv":0.077,"tang":-86.8,"v_show":10,"v_fast":13,"v_bal":11.5},{"i":9,"label":"WP_09_LEG3","x":107,"z":88,"arc":313.2,"curv":0,"tang":-86.8,"v_show":28,"v_fast":40,"v_bal":34},{"i":10,"label":"WP_10_V2_E","x":110,"z":34.7,"arc":366.5,"curv":0.08,"tang":-86.8,"v_show":10,"v_fast":13,"v_bal":11.5},{"i":11,"label":"WP_11_V2_A","x":122.5,"z":34,"arc":379.1,"curv":0.08,"tang":0,"v_show":9,"v_fast":11.7,"v_bal":10.4},{"i":12,"label":"WP_12_V2_X","x":135,"z":34.7,"arc":391.6,"curv":0.08,"tang":84.3,"v_show":10,"v_fast":13,"v_bal":11.5},{"i":13,"label":"WP_13_LEG4","x":141,"z":88,"arc":445.2,"curv":0,"tang":84.3,"v_show":28,"v_fast":40,"v_bal":34},{"i":14,"label":"WP_14_P2_E","x":147.1,"z":155.6,"arc":513.1,"curv":0.071,"tang":84.3,"v_show":11,"v_fast":14.3,"v_bal":12.7},{"i":15,"label":"WP_15_P2_A","x":161,"z":157,"arc":527.1,"curv":0.071,"tang":0,"v_show":10,"v_fast":13,"v_bal":11.5},{"i":16,"label":"WP_16_P2_X","x":174.9,"z":155.6,"arc":541,"curv":0.071,"tang":-86.4,"v_show":11,"v_fast":14.3,"v_bal":12.7},{"i":17,"label":"WP_17_LEG5","x":179,"z":88,"arc":608.8,"curv":0,"tang":-86.4,"v_show":28,"v_fast":40,"v_bal":34},{"i":18,"label":"WP_18_V3_E","x":182.5,"z":26.3,"arc":670.5,"curv":0.074,"tang":-86.4,"v_show":10,"v_fast":13,"v_bal":11.5},{"i":19,"label":"WP_19_V3_A","x":196,"z":25.5,"arc":684.1,"curv":0.074,"tang":0,"v_show":9,"v_fast":11.7,"v_bal":10.4},{"i":20,"label":"WP_20_V3_X","x":209.5,"z":26.3,"arc":697.6,"curv":0.074,"tang":84.8,"v_show":10,"v_fast":13,"v_bal":11.5},{"i":21,"label":"WP_21_LEG6","x":215,"z":88,"arc":759.5,"curv":0,"tang":84.8,"v_show":28,"v_fast":40,"v_bal":34},{"i":22,"label":"WP_22_P3_E","x":221.1,"z":150.8,"arc":822.6,"curv":0.074,"tang":84.8,"v_show":10,"v_fast":13,"v_bal":11.5},{"i":23,"label":"WP_23_P3_A","x":234.5,"z":152,"arc":836.1,"curv":0.074,"tang":0,"v_show":9,"v_fast":11.7,"v_bal":10.4},{"i":24,"label":"WP_24_P3_X","x":248,"z":150.8,"arc":849.6,"curv":0.074,"tang":-90,"v_show":10,"v_fast":13,"v_bal":11.5},{"i":25,"label":"WP_25_LEG7","x":248,"z":88,"arc":912.4,"curv":0,"tang":-90,"v_show":28,"v_fast":40,"v_bal":34},{"i":26,"label":"WP_26_V4_E","x":248,"z":34,"arc":966.4,"curv":0.083,"tang":-90,"v_show":9,"v_fast":11.7,"v_bal":10.4},{"i":27,"label":"WP_27_V4_A","x":260,"z":33,"arc":978.5,"curv":0.083,"tang":0,"v_show":8,"v_fast":10.4,"v_bal":9.2},{"i":28,"label":"WP_28_V4_X","x":271.8,"z":34.5,"arc":990.4,"curv":0.083,"tang":81.6,"v_show":9,"v_fast":11.7,"v_bal":10.4},{"i":29,"label":"WP_29_LEG8","x":274,"z":88,"arc":1043.9,"curv":0,"tang":81.6,"v_show":25,"v_fast":40,"v_bal":32.5},{"i":30,"label":"WP_30_GOAL","x":280,"z":141.5,"arc":1097.8,"curv":0,"tang":81.6,"v_show":10,"v_fast":25,"v_bal":17.5}];
+
+const EX = [{"id":"S_L","type":"start","x":0,"z":144,"r":null},{"id":"V1","type":"valley","x":48.5,"z":38,"r":11.5},{"id":"P1","type":"peak","x":91,"z":145,"r":13},{"id":"V2","type":"valley","x":122.5,"z":34,"r":12.5},{"id":"P2","type":"peak","x":161,"z":157,"r":14},{"id":"V3","type":"valley","x":196,"z":25.5,"r":13.5},{"id":"P3","type":"peak","x":234.5,"z":152,"r":13.5},{"id":"V4","type":"valley","x":260,"z":33,"r":12},{"id":"S_R","type":"goal","x":288,"z":144,"r":null}];
+
+const HIST = {bins:[0,5,10,15,20,25,30],counts:[2311,991,33,65,58,5]};
+
+const ACTUAL_SPEEDS = [1.5,3.8,5.2,5.2,5.1,5.1,5.1,5.1,3.7,5.3,5.4,5.1,5.1,4.9,5.2,5.1,5.1,4.9,5.3,5.2,5.2,5.2,0.9,6.2,5.2,5.2,5.1,5.4,5.3,5.1,5.2,5.2,5.3,4.3,5.2,5.3,5.1,3.7,5.1,5.4,3.8,5.2,5.1,5.1,5.0,5.1,5.2,5.1,5.0,3.9,5.2,5.4,5.4,5.2,4.4,5.2,4.9,11.2,6.9,22.3,19.8,19.9,19.7,19.5,22.3,19.5,10.5,9.4,18.6,8.1,22.6,16.1,24.2,16.5,16.8,24.3,16.4,18.7,20.6,22.6,16.8,4.8,11.8,21.5,17.0,22.3,15.5,1.0,1.2,1.7,2.6,2.8,1.7,1.5,1.9,1.8,0.9,1.9,4.8,2.8];
+const ACTUAL_ARCS = [];
+for(let i=0;i<ACTUAL_SPEEDS.length;i++) ACTUAL_ARCS.push(i*23.1);
+
+function cs(p){return getComputedStyle(document.documentElement).getPropertyValue(p).trim();}
+function svgEl(t,a){const e=document.createElementNS('http://www.w3.org/2000/svg',t);for(const[k,v] of Object.entries(a))e.setAttribute(k,v);return e;}
+function clearSvg(id){const s=document.getElementById(id);while(s.firstChild)s.removeChild(s.firstChild);return s;}
+
+const tooltip=document.getElementById('tooltip');
+function showTip(e,h){tooltip.innerHTML=h;tooltip.style.display='block';const r=tooltip.getBoundingClientRect();let x=e.clientX+12,y=e.clientY-12;if(x+r.width>window.innerWidth-12)x=e.clientX-r.width-12;if(y<8)y=8;tooltip.style.left=x+'px';tooltip.style.top=y+'px';}
+function hideTip(){tooltip.style.display='none';}
+
+// Wire course
+(function(){
+  const svg=clearSvg('wireChart');
+  const p={l:48,r:18,t:20,b:32},W=1060,H=310;
+  const cw=W-p.l-p.r,ch=H-p.t-p.b;
+  const xR=[- 5,295],zR=[15,170];
+  const sx=x=>p.l+(x-xR[0])/(xR[1]-xR[0])*cw;
+  const sy=z=>p.t+ch-(z-zR[0])/(zR[1]-zR[0])*ch;
+  for(let z=20;z<=160;z+=20){svg.appendChild(svgEl('line',{x1:p.l,x2:W-p.r,y1:sy(z),y2:sy(z),stroke:cs('--border'),'stroke-width':1}));svg.appendChild(svgEl('text',{x:p.l-6,y:sy(z)+4,fill:cs('--fg-muted'),'font-size':'9','text-anchor':'end'})).textContent=z;}
+  for(let x=0;x<=280;x+=40){svg.appendChild(svgEl('text',{x:sx(x),y:H-p.b+14,fill:cs('--fg-muted'),'font-size':'9','text-anchor':'middle'})).textContent=x;}
+  const pts=WP.map(w=>`${sx(w.x)},${sy(w.z)}`).join(' ');
+  svg.appendChild(svgEl('polyline',{points:pts,fill:'none',stroke:cs('--wire'),'stroke-width':3,'stroke-linejoin':'round','stroke-linecap':'round'}));
+  const fp=pts+` ${sx(WP[30].x)},${sy(zR[0])} ${sx(WP[0].x)},${sy(zR[0])}`;
+  svg.appendChild(svgEl('polygon',{points:fp,fill:cs('--wire-dim'),stroke:'none'}));
+  EX.forEach(ex=>{if(ex.type==='start'||ex.type==='goal')return;const col=ex.type==='peak'?cs('--peak'):cs('--valley');svg.appendChild(svgEl('circle',{cx:sx(ex.x),cy:sy(ex.z),r:5,fill:col,stroke:cs('--bg-card'),'stroke-width':2}));svg.appendChild(svgEl('text',{x:sx(ex.x),y:ex.type==='peak'?sy(ex.z)-10:sy(ex.z)+14,fill:col,'font-size':'9','font-weight':'600','text-anchor':'middle'})).textContent=`${ex.id} r=${ex.r}`;});
+  svg.appendChild(svgEl('text',{x:sx(8),y:sy(141.5)-12,fill:cs('--balanced'),'font-size':'10','font-weight':'600','text-anchor':'middle'})).textContent='START';
+  svg.appendChild(svgEl('text',{x:sx(280),y:sy(141.5)-12,fill:cs('--fast'),'font-size':'10','font-weight':'600','text-anchor':'middle'})).textContent='GOAL';
+  WP.forEach(w=>{const c=svgEl('circle',{cx:sx(w.x),cy:sy(w.z),r:3.5,fill:cs('--fg-muted'),stroke:cs('--bg-card'),'stroke-width':1.5,opacity:0.6,style:'cursor:pointer'});c.addEventListener('mouseenter',e=>{c.setAttribute('r',5);c.setAttribute('opacity',1);showTip(e,`<div class="tt-label">${w.label}</div><div class="tt-row"><span class="tt-key">Pos</span><span class="tt-val">(${w.x}, ${w.z})</span></div><div class="tt-row"><span class="tt-key">κ</span><span class="tt-val">${w.curv}</span></div><div class="tt-row"><span class="tt-key">Show</span><span class="tt-val">${w.v_show} mm/s</span></div><div class="tt-row"><span class="tt-key">Fast</span><span class="tt-val">${w.v_fast} mm/s</span></div>`);});c.addEventListener('mouseleave',()=>{c.setAttribute('r',3.5);c.setAttribute('opacity',0.6);hideTip();});svg.appendChild(c);});
+  svg.appendChild(svgEl('text',{x:W/2,y:H-2,fill:cs('--fg-sec'),'font-size':'10','text-anchor':'middle'})).textContent='X position (mm)';
+})();
+
+// Speed histogram
+(function(){
+  const svg=clearSvg('histChart');
+  const p={l:44,r:12,t:12,b:32},W=520,H=240;
+  const cw=W-p.l-p.r,ch=H-p.t-p.b;
+  const maxC=Math.max(...HIST.counts);
+  const n=HIST.counts.length;
+  const bw=cw/n*0.7;
+  const gap=cw/n*0.3;
+  for(let v=0;v<=maxC;v+=500){svg.appendChild(svgEl('line',{x1:p.l,x2:W-p.r,y1:p.t+ch-v/maxC*ch,y2:p.t+ch-v/maxC*ch,stroke:cs('--border'),'stroke-width':1}));svg.appendChild(svgEl('text',{x:p.l-6,y:p.t+ch-v/maxC*ch+4,fill:cs('--fg-muted'),'font-size':'9','text-anchor':'end'})).textContent=v;}
+  HIST.counts.forEach((c,i)=>{const x=p.l+i*(bw+gap)+gap/2;const h=c/maxC*ch;const col=HIST.bins[i]<5?cs('--actual'):HIST.bins[i]<15?cs('--balanced'):cs('--fast');
+  svg.appendChild(svgEl('rect',{x,y:p.t+ch-h,width:bw,height:h,fill:col,rx:3,opacity:0.85}));
+  svg.appendChild(svgEl('text',{x:x+bw/2,y:p.t+ch-h-4,fill:cs('--fg-sec'),'font-size':'9','text-anchor':'middle','font-weight':'500'})).textContent=c;
+  svg.appendChild(svgEl('text',{x:x+bw/2,y:H-p.b+14,fill:cs('--fg-muted'),'font-size':'9','text-anchor':'middle'})).textContent=`${HIST.bins[i]}-${HIST.bins[i+1]}`;});
+  svg.appendChild(svgEl('text',{x:W/2,y:H-2,fill:cs('--fg-sec'),'font-size':'10','text-anchor':'middle'})).textContent='Speed (mm/s)';
+})();
+
+// Planned speed profiles
+(function(){
+  const svg=clearSvg('speedChart');
+  const p={l:40,r:12,t:12,b:32},W=520,H=240;
+  const cw=W-p.l-p.r,ch=H-p.t-p.b;
+  const arcMax=1098,sMax=45;
+  const sx=s=>p.l+s/arcMax*cw,sy=v=>p.t+ch-v/sMax*ch;
+  for(let v=0;v<=40;v+=10){svg.appendChild(svgEl('line',{x1:p.l,x2:W-p.r,y1:sy(v),y2:sy(v),stroke:cs('--border'),'stroke-width':1}));svg.appendChild(svgEl('text',{x:p.l-5,y:sy(v)+4,fill:cs('--fg-muted'),'font-size':'9','text-anchor':'end'})).textContent=v;}
+  [{k:'v_show',c:'--show'},{k:'v_bal',c:'--balanced'},{k:'v_fast',c:'--fast'}].forEach(pr=>{
+    const pts=WP.map(w=>`${sx(w.arc)},${sy(w[pr.k])}`).join(' ');
+    svg.appendChild(svgEl('polyline',{points:pts,fill:'none',stroke:cs(pr.c),'stroke-width':2,'stroke-linejoin':'round'}));
+    const ap=pts+` ${sx(WP[30].arc)},${sy(0)} ${sx(0)},${sy(0)}`;
+    svg.appendChild(svgEl('polygon',{points:ap,fill:cs(pr.c),opacity:0.06,stroke:'none'}));
+  });
+  // Actual avg line
+  svg.appendChild(svgEl('line',{x1:p.l,x2:W-p.r,y1:sy(1),y2:sy(1),stroke:cs('--actual'),'stroke-width':1.5,'stroke-dasharray':'4,3'}));
+  svg.appendChild(svgEl('text',{x:W-p.r-2,y:sy(1)-4,fill:cs('--actual'),'font-size':'9','text-anchor':'end'})).textContent='actual avg 1.0';
+  svg.appendChild(svgEl('text',{x:W/2,y:H-2,fill:cs('--fg-sec'),'font-size':'10','text-anchor':'middle'})).textContent='Arc length (mm)';
+})();
+
+// Actual speed along arc
+(function(){
+  const svg=clearSvg('actualSpeedChart');
+  const p={l:44,r:18,t:12,b:32},W=1060,H=240;
+  const cw=W-p.l-p.r,ch=H-p.t-p.b;
+  const arcMax=2310,sMax=28;
+  const sx=a=>p.l+a/arcMax*cw,sy=v=>p.t+ch-v/sMax*ch;
+  for(let v=0;v<=25;v+=5){svg.appendChild(svgEl('line',{x1:p.l,x2:W-p.r,y1:sy(v),y2:sy(v),stroke:cs('--border'),'stroke-width':1}));svg.appendChild(svgEl('text',{x:p.l-6,y:sy(v)+4,fill:cs('--fg-muted'),'font-size':'9','text-anchor':'end'})).textContent=v;}
+  for(let a=0;a<=arcMax;a+=200){svg.appendChild(svgEl('text',{x:sx(a),y:H-p.b+14,fill:cs('--fg-muted'),'font-size':'9','text-anchor':'middle'})).textContent=a;}
+  // 5mm/s reference
+  svg.appendChild(svgEl('line',{x1:p.l,x2:W-p.r,y1:sy(5),y2:sy(5),stroke:cs('--fg-muted'),'stroke-width':1,'stroke-dasharray':'3,3',opacity:0.5}));
+  svg.appendChild(svgEl('text',{x:W-p.r-2,y:sy(5)-3,fill:cs('--fg-muted'),'font-size':'8','text-anchor':'end'})).textContent='5 mm/s cruise';
+  // Data
+  const pts=ACTUAL_SPEEDS.map((v,i)=>`${sx(ACTUAL_ARCS[i])},${sy(v)}`).join(' ');
+  svg.appendChild(svgEl('polyline',{points:pts,fill:'none',stroke:cs('--actual'),'stroke-width':1.5,'stroke-linejoin':'round',opacity:0.9}));
+  const ap=pts+` ${sx(ACTUAL_ARCS[ACTUAL_ARCS.length-1])},${sy(0)} ${sx(0)},${sy(0)}`;
+  svg.appendChild(svgEl('polygon',{points:ap,fill:cs('--actual'),opacity:0.08,stroke:'none'}));
+  // Annotations for the burst region
+  svg.appendChild(svgEl('rect',{x:sx(1300),y:p.t,width:sx(2000)-sx(1300),height:ch,fill:cs('--balanced'),opacity:0.04,rx:4}));
+  svg.appendChild(svgEl('text',{x:(sx(1300)+sx(2000))/2,y:p.t+12,fill:cs('--balanced'),'font-size':'8','text-anchor':'middle',opacity:0.6})).textContent='high-speed burst (old seg_0000)';
+  svg.appendChild(svgEl('text',{x:W/2,y:H-2,fill:cs('--fg-sec'),'font-size':'10','text-anchor':'middle'})).textContent='Arc length (mm)';
+})();
+</script>

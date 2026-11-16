@@ -1,0 +1,132 @@
+# ======================= EDIT THIS FILE FOR YOUR SETUP =======================
+
+board:                       # ChArUco board (python3 scripts/make_board.py prints it at true size)
+  squares_x: 7
+  squares_y: 5
+  square_length: 0.040       # metres - MEASURE the printed square with calipers!
+  marker_length: 0.030       # metres - measure the black marker side
+  dictionary: DICT_5X5_100
+
+robot:
+  base_link: base_link
+  tip_link: end-effector
+  joint_names: [joint1, joint2, joint3, joint4, joint5, joint6]
+  joint_state_topic: /joint_states
+  robot_description_topic: /robot_description
+  ee_pose_topic: ""          # optional fallback, e.g. /end_effector_pose (only used if KDL/URDF unavailable)
+  velocity_command_topic: /velocity_controller/commands
+
+cameras:
+  # source: OpenCV index ("0"), "/dev/videoN", "ros:/image/topic" (raw) or "rosc:/image/topic" (compressed)
+  # mount : "hand"  = camera rides on the arm (eye-in-hand)
+  #         "fixed" = camera stands still in the room (eye-to-hand)
+  cam0:
+    source: "0"
+    mount: hand
+    width: 1280
+    height: 720
+    fps: 30
+    fourcc: MJPG
+  cam1:
+    source: "2"
+    mount: fixed
+    width: 1280
+    height: 720
+    fps: 30
+    fourcc: MJPG
+
+calibration:
+  # "world": the board ("matrix") sits still on the table while the robot moves; each matrix = a new placement.
+  # "ee"   : the board is bolted to the gripper (then cameras must both be "fixed").
+  board_mount: world
+
+capture:
+  burst_frames: 12           # frames averaged per capture, per camera
+  settle_time_s: 0.4         # wait after the key press before grabbing (hand jitter dies down)
+  max_joint_motion_rad: 0.004  # reject the capture if the arm moves more than this during the burst
+  min_corners: 8             # ChArUco corners needed in a frame to count as "board seen"
+  min_good_frames: 4         # frames with the board needed out of burst_frames
+  require: all               # "all" = every camera must see the board, "any" = at least one
+  extra_frames: 2            # additional sharp frames saved per camera (help intrinsics)
+  stale_robot_s: 0.5
+  stale_cam_s: 1.0
+  frame_timeout_s: 2.0
+  preview: true
+
+keys:                        # single characters, change freely
+  capture: " "               # SPACE
+  next_matrix: "n"
+  finish: "f"
+  undo: "u"
+  quit: "q"
+  status: "s"
+
+paths:
+  data_root: data
+  results_root: results
+
+# ==================== BUZZ WIRE TEACH & REPLAY CONFIG ====================
+
+gripper:
+  enabled: true
+  service_name: /gripper_controller/command
+  service_type: addverb_cobot_msgs/srv/Gripper
+  open_position: 1.0         # 1.0 = fully open, 0.0 = closed
+  close_position: 0.0
+  force: 100.0               # gripper grasp force
+  initial_state: open
+  workspace_path: ""         # optional override path to workspace setup.bash for CLI fallback
+
+teleop:
+  # Jog frame orientation: yaw angle in degrees relative to robot base frame
+  # Align +X with the wire lengthwise axis and +Y with the wire transverse axis.
+  jog_frame_yaw_deg: 0.0
+
+  # Discrete speed levels (1 through 5, switched via keys 1-5)
+  lin_speeds_mmps: [2, 5, 10, 20, 40]      # linear speeds in mm/s
+  ang_speeds_degps: [3, 6, 12, 20, 30]     # angular speeds in deg/s
+  default_level: 2                         # starts at level 2 (5 mm/s, 6 deg/s)
+
+  # Acceleration / slew limits to prevent jerky motion
+  lin_accel: 0.10            # m/s^2 linear acceleration
+  ang_accel: 0.60            # rad/s^2 angular acceleration
+
+  # Input configuration
+  key_backend: terminal      # 'terminal' (safe, focused window only) or 'pynput' (global)
+  key_hold_s: 0.12           # window to consider a key held in terminal mode
+
+  # Recording rate
+  record_hz: 20.0            # sampling rate (Hz) when saving waypoints
+  min_move_m: 0.0005         # minimum Cartesian motion (m) to log a new sample
+
+  # Cartesian workspace safety bounding box: [xmin, xmax, ymin, ymax, zmin, zmax] in metres
+  # Set these bounds around the physical wire stand to physically forbid runaway motion.
+  workspace_box_m: null      # e.g., [-0.70, -0.20, -0.45, 0.10, 0.15, 0.45]
+
+  # Joint limits and safety
+  max_joint_vel: 0.35        # rad/s maximum allowed joint velocity
+  joint_limits_rad: null     # optional [[min_q1, max_q1], ...] (6 pairs)
+  joint_limit_margin_rad: 0.05
+
+  # Carrot-on-a-leash controller parameters
+  lead_lin_m: 0.012          # 12 mm maximum linear lead of virtual carrot over real arm
+  lead_ang_rad: 0.12         # 0.12 rad maximum angular lead
+  kp_lin: 4.0                # proportional linear gain
+  kp_ang: 3.0                # proportional angular gain
+
+  # Tool orientation alignment (auto-tangent mode, toggled with 'g')
+  tool_axis: [0, 0, 1]       # unit vector of tool pointing along the wire loop
+  plane_normal_base: [0, 1, 0] # unit normal of vertical wire plane in base frame
+  auto_tangent: false        # automatically rotate tool to match wire travel direction
+
+wire:
+  expected_length_m: 1.0     # approx wire centerline length in metres for coverage estimate
+
+replay:
+  v_max_mps: 0.06            # 60 mm/s maximum linear speed cap
+  a_max_mps2: 0.15           # 0.15 m/s^2 longitudinal acceleration limit
+  a_lat_mps2: 0.10           # 0.10 m/s^2 lateral acceleration limit in tight bends
+  w_max_radps: 0.50          # 0.50 rad/s maximum angular rotation rate
+  max_joint_vel: 0.30        # rad/s joint velocity clamp during replay (robot SAFETY trips at ~0.50 rad/s!)
+  approach_speed_mps: 0.03   # 30 mm/s slow straight-line approach to trajectory start
+  max_approach_m: 0.30       # maximum allowed approach distance before requiring --force

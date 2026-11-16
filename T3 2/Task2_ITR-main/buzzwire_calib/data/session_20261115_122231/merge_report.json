@@ -1,0 +1,19 @@
+{
+  "n_input_segments": 2,
+  "n_valid_segments": 2,
+  "segment_order": [
+    0,
+    1
+  ],
+  "n_raw_merged": 2386,
+  "n_resampled": 722,
+  "total_arc_m": 1.3968,
+  "gap_bridges": 0,
+  "warnings": [],
+  "active_direction": "RL",
+  "files": {
+    "LR": "data/session_20261115_122231/merged_trajectory_LR.csv",
+    "RL": "data/session_20261115_122231/merged_trajectory_RL.csv",
+    "active": "data/session_20261115_122231/merged_trajectory.csv"
+  }
+}

@@ -1,0 +1,1236 @@
+{
+  "metadata": {
+    "model_name": "Buzz Wire Game - Robotics Lab Apparatus",
+    "schema_version": "1.0.0",
+    "units": {
+      "linear": "mm",
+      "angular": "deg",
+      "velocity": "mm/s",
+      "curvature": "1/mm"
+    },
+    "calibration_source": {
+      "image_count": 14,
+      "reference_scale": "300 mm stainless steel ruler (1 mm graduation)",
+      "calibration_status": "photogrammetric_ruler_calibrated",
+      "estimated_measurement_uncertainty_mm": 1.0
+    },
+    "image_manifest": [
+      "WhatsApp Image 2026-11-12 at 3.47.39 PM (1).jpeg",
+      "WhatsApp Image 2026-11-12 at 3.47.39 PM.jpeg",
+      "WhatsApp Image 2026-11-12 at 3.47.40 PM (1).jpeg",
+      "WhatsApp Image 2026-11-12 at 3.47.40 PM (2).jpeg",
+      "WhatsApp Image 2026-11-12 at 3.47.40 PM.jpeg",
+      "WhatsApp Image 2026-11-12 at 3.47.41 PM (1).jpeg",
+      "WhatsApp Image 2026-11-12 at 3.47.41 PM.jpeg",
+      "WhatsApp Image 2026-11-12 at 3.47.42 PM (1).jpeg",
+      "WhatsApp Image 2026-11-12 at 3.47.42 PM (2).jpeg",
+      "WhatsApp Image 2026-11-12 at 3.47.42 PM.jpeg",
+      "WhatsApp Image 2026-11-12 at 3.47.43 PM.jpeg",
+      "WhatsApp Image 2026-11-12 at 3.47.46 PM.jpeg",
+      "WhatsApp Image 2026-11-12 at 3.47.47 PM.jpeg",
+      "WhatsApp Image 2026-11-12 at 3.52.38 PM.jpeg"
+    ]
+  },
+  "coordinate_frames": {
+    "ground_frame": {
+      "frame_id": "buzz_wire_ground",
+      "handedness": "right_handed",
+      "origin_definition": {
+        "x_zero": "Inner (right-facing) vertical plane of the Left MDF support post",
+        "y_zero": "Nominal vertical symmetry plane of the copper wire track",
+        "z_zero": "Top horizontal surface of the laser-cut MDF base board"
+      },
+      "axis_conventions": {
+        "x_axis": "Longitudinal span from Left post (0.0 mm) to Right post (288.0 mm)",
+        "y_axis": "Transverse depth from Front engraved text edge (-Y) toward Rear switch/buzzer side (+Y)",
+        "z_axis": "Vertical upward normal from top surface of MDF base board (0.0 mm)"
+      }
+    },
+    "robot_base_to_ground_transform": {
+      "parent_frame": "robot_base_link",
+      "child_frame": "buzz_wire_ground",
+      "calibration_method": "3_point_fiducial_touch_or_apriltag",
+      "translation_mm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation_quaternion_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "is_calibrated": false,
+      "calibration_fiducials_in_ground_mm": [
+        {
+          "id": "FID_FL",
+          "description": "Front-Left laser-cut cross (+) center",
+          "position_mm": [
+            0.0,
+            -48.0,
+            0.0
+          ]
+        },
+        {
+          "id": "FID_RL",
+          "description": "Rear-Left laser-cut cross (+) center",
+          "position_mm": [
+            0.0,
+            48.0,
+            0.0
+          ]
+        },
+        {
+          "id": "FID_FR",
+          "description": "Front-Right laser-cut cross (+) center",
+          "position_mm": [
+            288.0,
+            -48.0,
+            0.0
+          ]
+        },
+        {
+          "id": "FID_RR",
+          "description": "Rear-Right laser-cut cross (+) center",
+          "position_mm": [
+            288.0,
+            48.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    "tool_center_point_frame": {
+      "frame_id": "wand_loop_tcp",
+      "origin": "Geometric center of the closed copper wand loop",
+      "axis_conventions": {
+        "x_axis": "Orthogonal in-plane loop axis (y_tcp cross z_tcp)",
+        "y_axis": "Wand handle axis pointing outward from loop toward operator/robot wrist ([0, -1, 0] in ground frame)",
+        "z_axis": "Loop plane normal vector aligned with local wire tangent vector t_hat(s)"
+      }
+    }
+  },
+  "hardware_dimensions": {
+    "base_board": {
+      "material": "Laser-cut MDF over hollow electronics enclosure",
+      "length_x_mm": 332.0,
+      "width_y_mm": 136.0,
+      "top_plate_thickness_z_mm": 4.0,
+      "enclosure_height_below_z0_mm": 22.0,
+      "x_bounds_mm": [
+        -22.0,
+        310.0
+      ],
+      "y_bounds_mm": [
+        -68.0,
+        68.0
+      ]
+    },
+    "support_posts": {
+      "inner_span_x_mm": 288.0,
+      "outer_span_x_mm": 295.6,
+      "post_thickness_x_mm": 3.8,
+      "post_width_y_mm": 38.0,
+      "post_height_z_mm": 154.0,
+      "wire_entry_height_z_mm": 144.0,
+      "left_post_inner_x_mm": 0.0,
+      "right_post_inner_x_mm": 288.0
+    },
+    "copper_track": {
+      "wire_diameter_mm": 4.0,
+      "wire_radius_mm": 2.0,
+      "num_valleys": 4,
+      "num_peaks": 3,
+      "num_vertical_legs": 8,
+      "total_arc_length_mm": 982.4,
+      "min_z_clearance_above_board_mm": 23.5,
+      "max_z_height_above_board_mm": 159.0
+    },
+    "mid_height_leg_cross_section": {
+      "measurement_plane_z_mm": 88.0,
+      "reference_image": "WhatsApp Image 2026-11-12 at 3.52.38 PM.jpeg",
+      "legs": [
+        {
+          "leg_id": "L1",
+          "direction": "descending",
+          "x_center_mm": 35.0,
+          "x_bounds_mm": [
+            33.0,
+            37.0
+          ]
+        },
+        {
+          "leg_id": "L2",
+          "direction": "ascending",
+          "x_center_mm": 69.0,
+          "x_bounds_mm": [
+            67.0,
+            71.0
+          ]
+        },
+        {
+          "leg_id": "L3",
+          "direction": "descending",
+          "x_center_mm": 107.0,
+          "x_bounds_mm": [
+            105.0,
+            109.0
+          ]
+        },
+        {
+          "leg_id": "L4",
+          "direction": "ascending",
+          "x_center_mm": 141.0,
+          "x_bounds_mm": [
+            139.0,
+            143.0
+          ]
+        },
+        {
+          "leg_id": "L5",
+          "direction": "descending",
+          "x_center_mm": 179.0,
+          "x_bounds_mm": [
+            177.0,
+            181.0
+          ]
+        },
+        {
+          "leg_id": "L6",
+          "direction": "ascending",
+          "x_center_mm": 215.0,
+          "x_bounds_mm": [
+            213.0,
+            217.0
+          ]
+        },
+        {
+          "leg_id": "L7",
+          "direction": "descending",
+          "x_center_mm": 248.0,
+          "x_bounds_mm": [
+            246.0,
+            250.0
+          ]
+        },
+        {
+          "leg_id": "L8",
+          "direction": "ascending",
+          "x_center_mm": 274.0,
+          "x_bounds_mm": [
+            272.0,
+            276.0
+          ]
+        }
+      ],
+      "inner_gaps_between_legs_mm": [
+        {
+          "bend_id": "V1",
+          "between": [
+            "L1",
+            "L2"
+          ],
+          "inner_air_gap_mm": 30.0,
+          "center_to_center_mm": 34.0
+        },
+        {
+          "bend_id": "P1",
+          "between": [
+            "L2",
+            "L3"
+          ],
+          "inner_air_gap_mm": 34.0,
+          "center_to_center_mm": 38.0
+        },
+        {
+          "bend_id": "V2",
+          "between": [
+            "L3",
+            "L4"
+          ],
+          "inner_air_gap_mm": 30.0,
+          "center_to_center_mm": 34.0
+        },
+        {
+          "bend_id": "P2",
+          "between": [
+            "L4",
+            "L5"
+          ],
+          "inner_air_gap_mm": 34.0,
+          "center_to_center_mm": 38.0
+        },
+        {
+          "bend_id": "V3",
+          "between": [
+            "L5",
+            "L6"
+          ],
+          "inner_air_gap_mm": 32.0,
+          "center_to_center_mm": 36.0
+        },
+        {
+          "bend_id": "P3",
+          "between": [
+            "L6",
+            "L7"
+          ],
+          "inner_air_gap_mm": 29.0,
+          "center_to_center_mm": 33.0
+        },
+        {
+          "bend_id": "V4",
+          "between": [
+            "L7",
+            "L8"
+          ],
+          "inner_air_gap_mm": 22.0,
+          "center_to_center_mm": 26.0
+        }
+      ]
+    },
+    "board_keepout_obstacles": [
+      {
+        "id": "OBS_POWER_SWITCH",
+        "type": "box",
+        "description": "Red rocker switch on rear deck",
+        "center_mm": [
+          168.0,
+          22.0,
+          3.5
+        ],
+        "x_bounds_mm": [
+          160.0,
+          176.0
+        ],
+        "y_bounds_mm": [
+          14.0,
+          30.0
+        ],
+        "z_bounds_mm": [
+          0.0,
+          7.0
+        ]
+      },
+      {
+        "id": "OBS_PIEZO_BUZZER",
+        "type": "cylinder",
+        "description": "Black piezo buzzer on rear deck",
+        "center_mm": [
+          213.0,
+          24.0,
+          2.75
+        ],
+        "radius_mm": 6.0,
+        "z_bounds_mm": [
+          0.0,
+          5.5
+        ]
+      },
+      {
+        "id": "OBS_REAR_CABLE_PORT",
+        "type": "keepout_zone",
+        "description": "Wand cable grommet on rear right deck",
+        "center_mm": [
+          264.0,
+          52.0,
+          0.0
+        ],
+        "radius_mm": 12.0,
+        "z_bounds_mm": [
+          0.0,
+          40.0
+        ]
+      }
+    ]
+  },
+  "wand_end_effector": {
+    "loop_wire_diameter_mm": 4.0,
+    "loop_wire_radius_mm": 2.0,
+    "inner_major_diameter_mm": 27.0,
+    "inner_minor_diameter_mm": 25.0,
+    "outer_major_diameter_mm": 35.0,
+    "outer_minor_diameter_mm": 33.0,
+    "inner_major_radius_mm": 13.5,
+    "inner_minor_radius_mm": 12.5,
+    "radial_air_gap_envelope": {
+      "nominal_min_radial_gap_mm": 10.5,
+      "nominal_max_radial_gap_mm": 11.5,
+      "safety_margin_reserved_mm": 1.5,
+      "allowable_tracking_error_radius_mm": 9.0
+    },
+    "orientation_constraints": {
+      "recommended_handle_direction": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "max_tangent_tilt_error_deg": 22.0,
+      "critical_tilt_collision_angle_deg": 57.5
+    }
+  },
+  "wire_course_extrema": [
+    {
+      "id": "S_L",
+      "type": "start_anchor",
+      "position_mm": [
+        0.0,
+        0.0,
+        144.0
+      ],
+      "bend_centerline_radius_mm": null,
+      "inner_bend_radius_mm": null
+    },
+    {
+      "id": "V1",
+      "type": "valley",
+      "position_mm": [
+        48.5,
+        0.0,
+        38.0
+      ],
+      "bend_centerline_radius_mm": 11.5,
+      "inner_bend_radius_mm": 9.5
+    },
+    {
+      "id": "P1",
+      "type": "peak",
+      "position_mm": [
+        91.0,
+        0.0,
+        145.0
+      ],
+      "bend_centerline_radius_mm": 13.0,
+      "inner_bend_radius_mm": 11.0
+    },
+    {
+      "id": "V2",
+      "type": "valley",
+      "position_mm": [
+        122.5,
+        0.0,
+        34.0
+      ],
+      "bend_centerline_radius_mm": 12.5,
+      "inner_bend_radius_mm": 10.5
+    },
+    {
+      "id": "P2",
+      "type": "peak",
+      "position_mm": [
+        161.0,
+        0.0,
+        157.0
+      ],
+      "bend_centerline_radius_mm": 14.0,
+      "inner_bend_radius_mm": 12.0
+    },
+    {
+      "id": "V3",
+      "type": "valley",
+      "position_mm": [
+        196.0,
+        0.0,
+        25.5
+      ],
+      "bend_centerline_radius_mm": 13.5,
+      "inner_bend_radius_mm": 11.5
+    },
+    {
+      "id": "P3",
+      "type": "peak",
+      "position_mm": [
+        234.5,
+        0.0,
+        152.0
+      ],
+      "bend_centerline_radius_mm": 13.5,
+      "inner_bend_radius_mm": 11.5
+    },
+    {
+      "id": "V4",
+      "type": "valley",
+      "position_mm": [
+        260.0,
+        0.0,
+        33.0
+      ],
+      "bend_centerline_radius_mm": 12.0,
+      "inner_bend_radius_mm": 10.0
+    },
+    {
+      "id": "S_R",
+      "type": "goal_anchor",
+      "position_mm": [
+        288.0,
+        0.0,
+        144.0
+      ],
+      "bend_centerline_radius_mm": null,
+      "inner_bend_radius_mm": null
+    }
+  ],
+  "navigation_waypoints": [
+    {
+      "index": 0,
+      "label": "WP_00_START_SAFE",
+      "segment_type": "linear_approach",
+      "position_mm": [
+        8.0,
+        0.0,
+        141.5
+      ],
+      "tangent_vector": [
+        0.312,
+        0.0,
+        -0.95
+      ],
+      "elevation_alpha_deg": -71.8,
+      "tcp_quaternion_xyzw": [
+        0.81,
+        0.0,
+        0.5864,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0,
+      "recommended_speed_mm_s": 12.0
+    },
+    {
+      "index": 1,
+      "label": "WP_01_LEG1_MID",
+      "segment_type": "linear_leg",
+      "position_mm": [
+        35.0,
+        0.0,
+        88.0
+      ],
+      "tangent_vector": [
+        0.312,
+        0.0,
+        -0.95
+      ],
+      "elevation_alpha_deg": -71.8,
+      "tcp_quaternion_xyzw": [
+        0.81,
+        0.0,
+        0.5864,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0,
+      "recommended_speed_mm_s": 25.0
+    },
+    {
+      "index": 2,
+      "label": "WP_02_V1_ENTRY",
+      "segment_type": "bend_entry",
+      "position_mm": [
+        37.5,
+        0.0,
+        41.5
+      ],
+      "tangent_vector": [
+        0.312,
+        0.0,
+        -0.95
+      ],
+      "elevation_alpha_deg": -71.8,
+      "tcp_quaternion_xyzw": [
+        0.81,
+        0.0,
+        0.5864,
+        0.0
+      ],
+      "curvature_inv_mm": 0.087,
+      "recommended_speed_mm_s": 10.0
+    },
+    {
+      "index": 3,
+      "label": "WP_03_V1_APEX",
+      "segment_type": "valley_apex",
+      "position_mm": [
+        48.5,
+        0.0,
+        38.0
+      ],
+      "tangent_vector": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "elevation_alpha_deg": 0.0,
+      "tcp_quaternion_xyzw": [
+        0.7071,
+        0.0,
+        0.7071,
+        0.0
+      ],
+      "curvature_inv_mm": 0.087,
+      "recommended_speed_mm_s": 8.0
+    },
+    {
+      "index": 4,
+      "label": "WP_04_V1_EXIT",
+      "segment_type": "bend_exit",
+      "position_mm": [
+        59.5,
+        0.0,
+        41.5
+      ],
+      "tangent_vector": [
+        0.184,
+        0.0,
+        0.983
+      ],
+      "elevation_alpha_deg": 79.4,
+      "tcp_quaternion_xyzw": [
+        0.0924,
+        0.0,
+        0.9957,
+        0.0
+      ],
+      "curvature_inv_mm": 0.087,
+      "recommended_speed_mm_s": 10.0
+    },
+    {
+      "index": 5,
+      "label": "WP_05_LEG2_MID",
+      "segment_type": "linear_leg",
+      "position_mm": [
+        69.0,
+        0.0,
+        88.0
+      ],
+      "tangent_vector": [
+        0.184,
+        0.0,
+        0.983
+      ],
+      "elevation_alpha_deg": 79.4,
+      "tcp_quaternion_xyzw": [
+        0.0924,
+        0.0,
+        0.9957,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0,
+      "recommended_speed_mm_s": 25.0
+    },
+    {
+      "index": 6,
+      "label": "WP_06_P1_ENTRY",
+      "segment_type": "bend_entry",
+      "position_mm": [
+        78.2,
+        0.0,
+        142.6
+      ],
+      "tangent_vector": [
+        0.184,
+        0.0,
+        0.983
+      ],
+      "elevation_alpha_deg": 79.4,
+      "tcp_quaternion_xyzw": [
+        0.0924,
+        0.0,
+        0.9957,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0769,
+      "recommended_speed_mm_s": 10.0
+    },
+    {
+      "index": 7,
+      "label": "WP_07_P1_APEX",
+      "segment_type": "peak_apex",
+      "position_mm": [
+        91.0,
+        0.0,
+        145.0
+      ],
+      "tangent_vector": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "elevation_alpha_deg": 0.0,
+      "tcp_quaternion_xyzw": [
+        0.7071,
+        0.0,
+        0.7071,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0769,
+      "recommended_speed_mm_s": 9.0
+    },
+    {
+      "index": 8,
+      "label": "WP_08_P1_EXIT",
+      "segment_type": "bend_exit",
+      "position_mm": [
+        103.8,
+        0.0,
+        142.6
+      ],
+      "tangent_vector": [
+        0.056,
+        0.0,
+        -0.998
+      ],
+      "elevation_alpha_deg": -86.8,
+      "tcp_quaternion_xyzw": [
+        0.9996,
+        0.0,
+        0.0279,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0769,
+      "recommended_speed_mm_s": 10.0
+    },
+    {
+      "index": 9,
+      "label": "WP_09_LEG3_MID",
+      "segment_type": "linear_leg",
+      "position_mm": [
+        107.0,
+        0.0,
+        88.0
+      ],
+      "tangent_vector": [
+        0.056,
+        0.0,
+        -0.998
+      ],
+      "elevation_alpha_deg": -86.8,
+      "tcp_quaternion_xyzw": [
+        0.9996,
+        0.0,
+        0.0279,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0,
+      "recommended_speed_mm_s": 28.0
+    },
+    {
+      "index": 10,
+      "label": "WP_10_V2_ENTRY",
+      "segment_type": "bend_entry",
+      "position_mm": [
+        110.0,
+        0.0,
+        34.7
+      ],
+      "tangent_vector": [
+        0.056,
+        0.0,
+        -0.998
+      ],
+      "elevation_alpha_deg": -86.8,
+      "tcp_quaternion_xyzw": [
+        0.9996,
+        0.0,
+        0.0279,
+        0.0
+      ],
+      "curvature_inv_mm": 0.08,
+      "recommended_speed_mm_s": 10.0
+    },
+    {
+      "index": 11,
+      "label": "WP_11_V2_APEX",
+      "segment_type": "valley_apex",
+      "position_mm": [
+        122.5,
+        0.0,
+        34.0
+      ],
+      "tangent_vector": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "elevation_alpha_deg": 0.0,
+      "tcp_quaternion_xyzw": [
+        0.7071,
+        0.0,
+        0.7071,
+        0.0
+      ],
+      "curvature_inv_mm": 0.08,
+      "recommended_speed_mm_s": 9.0
+    },
+    {
+      "index": 12,
+      "label": "WP_12_V2_EXIT",
+      "segment_type": "bend_exit",
+      "position_mm": [
+        135.0,
+        0.0,
+        34.7
+      ],
+      "tangent_vector": [
+        0.099,
+        0.0,
+        0.995
+      ],
+      "elevation_alpha_deg": 84.3,
+      "tcp_quaternion_xyzw": [
+        0.0497,
+        0.0,
+        0.9988,
+        0.0
+      ],
+      "curvature_inv_mm": 0.08,
+      "recommended_speed_mm_s": 10.0
+    },
+    {
+      "index": 13,
+      "label": "WP_13_LEG4_MID",
+      "segment_type": "linear_leg",
+      "position_mm": [
+        141.0,
+        0.0,
+        88.0
+      ],
+      "tangent_vector": [
+        0.099,
+        0.0,
+        0.995
+      ],
+      "elevation_alpha_deg": 84.3,
+      "tcp_quaternion_xyzw": [
+        0.0497,
+        0.0,
+        0.9988,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0,
+      "recommended_speed_mm_s": 28.0
+    },
+    {
+      "index": 14,
+      "label": "WP_14_P2_ENTRY",
+      "segment_type": "bend_entry",
+      "position_mm": [
+        147.1,
+        0.0,
+        155.6
+      ],
+      "tangent_vector": [
+        0.099,
+        0.0,
+        0.995
+      ],
+      "elevation_alpha_deg": 84.3,
+      "tcp_quaternion_xyzw": [
+        0.0497,
+        0.0,
+        0.9988,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0714,
+      "recommended_speed_mm_s": 11.0
+    },
+    {
+      "index": 15,
+      "label": "WP_15_P2_APEX",
+      "segment_type": "peak_apex",
+      "position_mm": [
+        161.0,
+        0.0,
+        157.0
+      ],
+      "tangent_vector": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "elevation_alpha_deg": 0.0,
+      "tcp_quaternion_xyzw": [
+        0.7071,
+        0.0,
+        0.7071,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0714,
+      "recommended_speed_mm_s": 10.0
+    },
+    {
+      "index": 16,
+      "label": "WP_16_P2_EXIT",
+      "segment_type": "bend_exit",
+      "position_mm": [
+        174.9,
+        0.0,
+        155.6
+      ],
+      "tangent_vector": [
+        0.062,
+        0.0,
+        -0.998
+      ],
+      "elevation_alpha_deg": -86.4,
+      "tcp_quaternion_xyzw": [
+        0.9995,
+        0.0,
+        0.0314,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0714,
+      "recommended_speed_mm_s": 11.0
+    },
+    {
+      "index": 17,
+      "label": "WP_17_LEG5_MID",
+      "segment_type": "linear_leg",
+      "position_mm": [
+        179.0,
+        0.0,
+        88.0
+      ],
+      "tangent_vector": [
+        0.062,
+        0.0,
+        -0.998
+      ],
+      "elevation_alpha_deg": -86.4,
+      "tcp_quaternion_xyzw": [
+        0.9995,
+        0.0,
+        0.0314,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0,
+      "recommended_speed_mm_s": 28.0
+    },
+    {
+      "index": 18,
+      "label": "WP_18_V3_ENTRY",
+      "segment_type": "bend_entry",
+      "position_mm": [
+        182.5,
+        0.0,
+        26.3
+      ],
+      "tangent_vector": [
+        0.062,
+        0.0,
+        -0.998
+      ],
+      "elevation_alpha_deg": -86.4,
+      "tcp_quaternion_xyzw": [
+        0.9995,
+        0.0,
+        0.0314,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0741,
+      "recommended_speed_mm_s": 10.0
+    },
+    {
+      "index": 19,
+      "label": "WP_19_V3_APEX",
+      "segment_type": "valley_apex",
+      "position_mm": [
+        196.0,
+        0.0,
+        25.5
+      ],
+      "tangent_vector": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "elevation_alpha_deg": 0.0,
+      "tcp_quaternion_xyzw": [
+        0.7071,
+        0.0,
+        0.7071,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0741,
+      "recommended_speed_mm_s": 9.0
+    },
+    {
+      "index": 20,
+      "label": "WP_20_V3_EXIT",
+      "segment_type": "bend_exit",
+      "position_mm": [
+        209.5,
+        0.0,
+        26.3
+      ],
+      "tangent_vector": [
+        0.091,
+        0.0,
+        0.996
+      ],
+      "elevation_alpha_deg": 84.8,
+      "tcp_quaternion_xyzw": [
+        0.0454,
+        0.0,
+        0.999,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0741,
+      "recommended_speed_mm_s": 10.0
+    },
+    {
+      "index": 21,
+      "label": "WP_21_LEG6_MID",
+      "segment_type": "linear_leg",
+      "position_mm": [
+        215.0,
+        0.0,
+        88.0
+      ],
+      "tangent_vector": [
+        0.091,
+        0.0,
+        0.996
+      ],
+      "elevation_alpha_deg": 84.8,
+      "tcp_quaternion_xyzw": [
+        0.0454,
+        0.0,
+        0.999,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0,
+      "recommended_speed_mm_s": 28.0
+    },
+    {
+      "index": 22,
+      "label": "WP_22_P3_ENTRY",
+      "segment_type": "bend_entry",
+      "position_mm": [
+        221.1,
+        0.0,
+        150.8
+      ],
+      "tangent_vector": [
+        0.091,
+        0.0,
+        0.996
+      ],
+      "elevation_alpha_deg": 84.8,
+      "tcp_quaternion_xyzw": [
+        0.0454,
+        0.0,
+        0.999,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0741,
+      "recommended_speed_mm_s": 10.0
+    },
+    {
+      "index": 23,
+      "label": "WP_23_P3_APEX",
+      "segment_type": "peak_apex",
+      "position_mm": [
+        234.5,
+        0.0,
+        152.0
+      ],
+      "tangent_vector": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "elevation_alpha_deg": 0.0,
+      "tcp_quaternion_xyzw": [
+        0.7071,
+        0.0,
+        0.7071,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0741,
+      "recommended_speed_mm_s": 9.0
+    },
+    {
+      "index": 24,
+      "label": "WP_24_P3_EXIT",
+      "segment_type": "bend_exit",
+      "position_mm": [
+        248.0,
+        0.0,
+        150.8
+      ],
+      "tangent_vector": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "elevation_alpha_deg": -90.0,
+      "tcp_quaternion_xyzw": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0741,
+      "recommended_speed_mm_s": 10.0
+    },
+    {
+      "index": 25,
+      "label": "WP_25_LEG7_MID",
+      "segment_type": "linear_leg",
+      "position_mm": [
+        248.0,
+        0.0,
+        88.0
+      ],
+      "tangent_vector": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "elevation_alpha_deg": -90.0,
+      "tcp_quaternion_xyzw": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0,
+      "recommended_speed_mm_s": 28.0
+    },
+    {
+      "index": 26,
+      "label": "WP_26_V4_ENTRY",
+      "segment_type": "bend_entry",
+      "position_mm": [
+        248.0,
+        0.0,
+        34.0
+      ],
+      "tangent_vector": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "elevation_alpha_deg": -90.0,
+      "tcp_quaternion_xyzw": [
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0833,
+      "recommended_speed_mm_s": 9.0
+    },
+    {
+      "index": 27,
+      "label": "WP_27_V4_APEX",
+      "segment_type": "valley_apex",
+      "position_mm": [
+        260.0,
+        0.0,
+        33.0
+      ],
+      "tangent_vector": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "elevation_alpha_deg": 0.0,
+      "tcp_quaternion_xyzw": [
+        0.7071,
+        0.0,
+        0.7071,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0833,
+      "recommended_speed_mm_s": 8.0
+    },
+    {
+      "index": 28,
+      "label": "WP_28_V4_EXIT",
+      "segment_type": "bend_exit",
+      "position_mm": [
+        271.8,
+        0.0,
+        34.5
+      ],
+      "tangent_vector": [
+        0.146,
+        0.0,
+        0.989
+      ],
+      "elevation_alpha_deg": 81.6,
+      "tcp_quaternion_xyzw": [
+        0.0732,
+        0.0,
+        0.9973,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0833,
+      "recommended_speed_mm_s": 9.0
+    },
+    {
+      "index": 29,
+      "label": "WP_29_LEG8_MID",
+      "segment_type": "linear_leg",
+      "position_mm": [
+        274.0,
+        0.0,
+        88.0
+      ],
+      "tangent_vector": [
+        0.146,
+        0.0,
+        0.989
+      ],
+      "elevation_alpha_deg": 81.6,
+      "tcp_quaternion_xyzw": [
+        0.0732,
+        0.0,
+        0.9973,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0,
+      "recommended_speed_mm_s": 25.0
+    },
+    {
+      "index": 30,
+      "label": "WP_30_GOAL_SAFE",
+      "segment_type": "linear_goal",
+      "position_mm": [
+        280.0,
+        0.0,
+        141.5
+      ],
+      "tangent_vector": [
+        0.146,
+        0.0,
+        0.989
+      ],
+      "elevation_alpha_deg": 81.6,
+      "tcp_quaternion_xyzw": [
+        0.0732,
+        0.0,
+        0.9973,
+        0.0
+      ],
+      "curvature_inv_mm": 0.0,
+      "recommended_speed_mm_s": 10.0
+    }
+  ],
+  "safety_and_control_constraints": {
+    "spline_interpolation": {
+      "recommended_method": "cubic_hermite_or_quintic_cartesian_spline",
+      "max_chord_deviation_mm": 0.25,
+      "orientation_slerp_enabled": true
+    },
+    "post_safety_buffers_mm": {
+      "left_post_min_x_mm": 6.0,
+      "right_post_max_x_mm": 282.0
+    },
+    "contact_feedback_loop": {
+      "signal_type": "digital_continuity_interrupt",
+      "triggered_state": "HIGH_OR_BUZZER_ACTIVE",
+      "on_contact_action": "immediate_motion_halt_and_local_normal_recovery"
+    }
+  }
+}

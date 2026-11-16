@@ -1,0 +1,7 @@
+numpy
+scipy
+pyyaml
+# optional
+pynput            # true key-down/key-up teleop (--keys pynput); needs a desktop session
+matplotlib        # ./buzzwire_teach.sh inspect --plot
+opencv-contrib-python>=4.7   # ONLY for the legacy camera-calibration tools (not needed for Buzz Wire teaching)

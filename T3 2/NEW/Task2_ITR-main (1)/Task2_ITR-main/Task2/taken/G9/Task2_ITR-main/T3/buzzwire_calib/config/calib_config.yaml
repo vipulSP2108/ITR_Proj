@@ -1,0 +1,66 @@
+# ======================= EDIT THIS FILE FOR YOUR SETUP =======================
+
+board:                       # ChArUco board (python3 scripts/make_board.py prints it at true size)
+  squares_x: 7
+  squares_y: 5
+  square_length: 0.040       # metres - MEASURE the printed square with calipers!
+  marker_length: 0.030       # metres - measure the black marker side
+  dictionary: DICT_5X5_100
+
+robot:
+  base_link: base_link
+  tip_link: end-effector
+  joint_names: [joint1, joint2, joint3, joint4, joint5, joint6]
+  joint_state_topic: /joint_states
+  robot_description_topic: /robot_description
+  ee_pose_topic: ""          # optional fallback, e.g. /end_effector_pose (only used if KDL/URDF unavailable)
+  velocity_command_topic: /velocity_controller/commands
+
+cameras:
+  # source: OpenCV index ("0"), "/dev/videoN", "ros:/image/topic" (raw) or "rosc:/image/topic" (compressed)
+  # mount : "hand"  = camera rides on the arm (eye-in-hand)
+  #         "fixed" = camera stands still in the room (eye-to-hand)
+  cam0:
+    source: "0"
+    mount: hand
+    width: 1280
+    height: 720
+    fps: 30
+    fourcc: MJPG
+  cam1:
+    source: "2"
+    mount: fixed
+    width: 1280
+    height: 720
+    fps: 30
+    fourcc: MJPG
+
+calibration:
+  # "world": the board ("matrix") sits still on the table while the robot moves; each matrix = a new placement.
+  # "ee"   : the board is bolted to the gripper (then cameras must both be "fixed").
+  board_mount: world
+
+capture:
+  burst_frames: 12           # frames averaged per capture, per camera
+  settle_time_s: 0.4         # wait after the key press before grabbing (hand jitter dies down)
+  max_joint_motion_rad: 0.004  # reject the capture if the arm moves more than this during the burst
+  min_corners: 8             # ChArUco corners needed in a frame to count as "board seen"
+  min_good_frames: 4         # frames with the board needed out of burst_frames
+  require: all               # "all" = every camera must see the board, "any" = at least one
+  extra_frames: 2            # additional sharp frames saved per camera (help intrinsics)
+  stale_robot_s: 0.5
+  stale_cam_s: 1.0
+  frame_timeout_s: 2.0
+  preview: true
+
+keys:                        # single characters, change freely
+  capture: " "               # SPACE
+  next_matrix: "n"
+  finish: "f"
+  undo: "u"
+  quit: "q"
+  status: "s"
+
+paths:
+  data_root: data
+  results_root: results
