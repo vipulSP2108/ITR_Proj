@@ -1,6 +1,6 @@
 # Task 1: Autonomous Peg Sorting Robot (Active Tested Workspace)
 
-This directory ([`T1 2/`](file:///Users/aai/Desktop/ITR_Proj/T1%202)) is the **primary tested workspace** for Task 1 of the Tri-Wizard Robotics Competition: Autonomous Perception, Kinematics Planning, and Pick-and-Place Manipulation using the **ROBOTIS OpenMANIPULATOR-X** and an **Intel RealSense D435i** Depth Camera.
+This directory ([`Project1 Task1/`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1)) is the **primary tested workspace** for Task 1 of the Tri-Wizard Robotics Competition: Autonomous Perception, Kinematics Planning, and Pick-and-Place Manipulation using the **ROBOTIS OpenMANIPULATOR-X** and an **Intel RealSense D435i** Depth Camera.
 
 > [!NOTE]
 > All scripts and commands in this folder run standalone directly on the workstation connected via USB to the U2D2 adapter and RealSense camera. macOS users must run commands from a real terminal (`Terminal.app` or IDE terminal) to grant camera access.
@@ -24,9 +24,9 @@ This directory ([`T1 2/`](file:///Users/aai/Desktop/ITR_Proj/T1%202)) is the **p
 
 ## 2. Pre-Flight Hardware Health Checks (30 Seconds)
 
-Open a terminal in [`T1 2/`](file:///Users/aai/Desktop/ITR_Proj/T1%202):
+Open a terminal in [`Project1 Task1/`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1):
 ```bash
-cd /Users/aai/Desktop/ITR_Proj/"T1 2"
+cd /Users/aai/Desktop/ITR_Proj/"Project1 Task1"
 ```
 
 ### A. Check Arm Actuators & 12V Supply
@@ -58,7 +58,7 @@ python3 pick_place.py --suggest-layout
 
 ## 3. Autonomous Execution Commands
 
-Execute the autonomous sorting pipeline via [`pick_place.py`](file:///Users/aai/Desktop/ITR_Proj/T1%202/pick_place.py):
+Execute the autonomous sorting pipeline via [`pick_place.py`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1/pick_place.py):
 
 | Goal | Command | Description |
 | :--- | :--- | :--- |
@@ -95,7 +95,7 @@ python3 calibration/02_verify_calibration.py --jog
 * ArUco corner reprojection RMS: $< 1.0\text{ px}$
 * Calibrated camera height: $\approx 510\text{ mm}$
 
-Output written to [`config/camera_robot_calib.yaml`](file:///Users/aai/Desktop/ITR_Proj/T1%202/config/camera_robot_calib.yaml).
+Output written to [`config/camera_robot_calib.yaml`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1/config/camera_robot_calib.yaml).
 
 ---
 
@@ -117,22 +117,22 @@ Output written to [`config/camera_robot_calib.yaml`](file:///Users/aai/Desktop/I
 
 Inside this directory are the hardware documentation and low-level diagnostic suites:
 
-* **[`device/`](file:///Users/aai/Desktop/ITR_Proj/T1%202/device)**:
-  - [`device/ROBOT_INFO.md`](file:///Users/aai/Desktop/ITR_Proj/T1%202/device/ROBOT_INFO.md): Complete mechanical and joint specifications for the OpenMANIPULATOR-X.
-  - [`device/CAMERA_INFO.md`](file:///Users/aai/Desktop/ITR_Proj/T1%202/device/CAMERA_INFO.md): RealSense D435i resolutions, intrinsics, and mounting geometries.
-  - [`device/SAFETY_AND_PROTECTION.md`](file:///Users/aai/Desktop/ITR_Proj/T1%202/device/SAFETY_AND_PROTECTION.md): Electrical limits, brownout thresholds, and hardware protector documentation.
-  - [`device/hardware_protector.py`](file:///Users/aai/Desktop/ITR_Proj/T1%202/device/hardware_protector.py): Standalone background safety daemon monitoring voltage, thermal levels, and motor load.
-  - [`device/images/`](file:///Users/aai/Desktop/ITR_Proj/T1%202/device/images): High-resolution physical lab reference photos of the real robot arm, pegs, sockets, and camera mounts.
-* **[`openmanipulator_test/`](file:///Users/aai/Desktop/ITR_Proj/T1%202/openmanipulator_test)**:
+* **[`device/`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1/device)**:
+  - [`device/ROBOT_INFO.md`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1/device/ROBOT_INFO.md): Complete mechanical and joint specifications for the OpenMANIPULATOR-X.
+  - [`device/CAMERA_INFO.md`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1/device/CAMERA_INFO.md): RealSense D435i resolutions, intrinsics, and mounting geometries.
+  - [`device/SAFETY_AND_PROTECTION.md`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1/device/SAFETY_AND_PROTECTION.md): Electrical limits, brownout thresholds, and hardware protector documentation.
+  - [`device/hardware_protector.py`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1/device/hardware_protector.py): Standalone background safety daemon monitoring voltage, thermal levels, and motor load.
+  - [`device/images/`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1/device/images): High-resolution physical lab reference photos of the real robot arm, pegs, sockets, and camera mounts.
+* **[`openmanipulator_test/`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1/openmanipulator_test)**:
   - Low-level physical hardware bringup test suite (`01_scan_and_ping.py` through `06_test_pick_and_place.py`), teleoperation, and home calibration.
 
 ---
 
 ## 7. Internal Workspace Modularization & Dump Buffer
 
-To maintain high readability and avoid confusion during laboratory operations, non-active assets have been modularized into [`dump/`](file:///Users/aai/Desktop/ITR_Proj/T1%202/dump):
+To maintain high readability and avoid confusion during laboratory operations, non-active assets have been modularized into [`dump/`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1/dump):
 * **`dump/deprecated_runners/`**: Early test scripts (`hw_run.py`, `hw_test_step1.py`, `run_hardware_pipeline*.py`) using outdated kinematics.
 * **`dump/historical_demos/`**: Legacy prototypes from early development phases (`demo1_20261107`, `demo_runs`, `sim`, `sim_demo`, `scripts`, `tests`).
 * **`dump/test_images_and_output/`**: Early test outputs and image folders (`hw_test_output/`, `calibration_img/`, `test_images/`).
 * **`dump/scratch_notes_and_logs/`**: Early logs, scratch notes, and context files (`MUJOCO_LOG.TXT`, `imp.md`, `context_folder/`).
-* See [`dump/README.md`](file:///Users/aai/Desktop/ITR_Proj/T1%202/dump/README.md) for full details.
+* See [`dump/README.md`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1/dump/README.md) for full details.

@@ -17,7 +17,7 @@ coordinates, repeat, then average"):
                calibration; their size must come out as 38 mm.
 Result: config/camera_robot_calib.yaml   (used by src/vision/camera_model.py)
 
-Usage (real terminal, inside "T1 2"):
+Usage (real terminal, inside "Project1 Task1"):
     python calibration/01_calibrate_camera_robot.py            # probe + collect + solve (~7 min)
     python calibration/01_calibrate_camera_robot.py --solve    # re-solve from the saved images
 Before running: mat clear of loose objects (the flat board and paper markers may stay),

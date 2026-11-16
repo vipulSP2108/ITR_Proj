@@ -3,7 +3,7 @@
 Open a **real terminal** (Terminal.app or the IDE terminal - macOS only gives the camera to those) and go to the project:
 
 ```bash
-cd ~/Desktop/ITR_Proj/"T1 2"
+cd ~/Desktop/ITR_Proj/"Project1 Task1"
 ```
 
 ## 0. Before every session (30 seconds)

@@ -9,8 +9,8 @@ This runbook contains complete, field-tested instructions for operating both **T
 ```mermaid
 flowchart TD
     Start["Select Task"] --> TaskChoice{"Which robot setup?"}
-    TaskChoice -->|OpenMANIPULATOR-X + RealSense| T1["Task 1: Peg Sorting (T1 2/)"]
-    TaskChoice -->|Addverb HEAL 6-DOF Cobot| T3["Task 3: Buzz Wire Navigation (T3 2/)"]
+    TaskChoice -->|OpenMANIPULATOR-X + RealSense| T1["Task 1: Peg Sorting (Project1 Task1/)"]
+    TaskChoice -->|Addverb HEAL 6-DOF Cobot| T3["Task 3: Buzz Wire Navigation (Project1 Task3/)"]
     
     T1 --> T1_Check["1. Check Arm Voltage (12V)<br>2. Check Camera Stream<br>3. Run pick_place.py"]
     T3 --> T3_Terminals["1. Terminal 1: SSH Cobot + ./cobot run<br>2. Terminal 2: ROS 2 velocity_control<br>3. Terminal 3: buzzwire_run.sh / buzzwire_teach.sh"]
@@ -18,7 +18,7 @@ flowchart TD
 
 ---
 
-## 2. Task 1: OpenMANIPULATOR-X Peg Sorting (`T1 2/`)
+## 2. Task 1: OpenMANIPULATOR-X Peg Sorting (`Project1 Task1/`)
 
 ### 2.1 Hardware Requirements & Physical Setup
 1. **Power Supply**: 12V DC, 5A connected to the ROBOTIS OpenMANIPULATOR-X power bus.
@@ -27,9 +27,9 @@ flowchart TD
 4. **Tabletop Environment**: Ensure the green background mat is clear. Place colored pegs and the wooden socket plate within the camera field of view.
 
 ### 2.2 Pre-Flight Hardware Check (30 Seconds)
-Open a terminal in [`T1 2/`](file:///Users/aai/Desktop/ITR_Proj/T1%202):
+Open a terminal in [`Project1 Task1/`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1):
 ```bash
-cd /Users/aai/Desktop/ITR_Proj/"T1 2"
+cd /Users/aai/Desktop/ITR_Proj/"Project1 Task1"
 ```
 
 1. **Check Arm Motors & Supply Voltage**:
@@ -53,7 +53,7 @@ cd /Users/aai/Desktop/ITR_Proj/"T1 2"
    ```bash
    python3 device/hardware_protector.py
    ```
-   *(Visual setup reference photos can be reviewed in [`device/images/`](file:///Users/aai/Desktop/ITR_Proj/T1%202/device/images)).*
+   *(Visual setup reference photos can be reviewed in [`device/images/`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1/device/images)).*
 
 ### 2.3 Visual Perception & Layout Verification
 Before moving the arm, verify what the robot sees:
@@ -94,10 +94,10 @@ python3 calibration/02_verify_calibration.py --jog
 
 ---
 
-## 3. Task 3: Addverb HEAL Buzz Wire Navigation (`T3 2/`)
+## 3. Task 3: Addverb HEAL Buzz Wire Navigation (`Project1 Task3/`)
 
 All active scripts are accessed via:
-[`/Users/aai/Desktop/ITR_Proj/T3 2/buzzwire_calib`](file:///Users/aai/Desktop/ITR_Proj/T3%202/buzzwire_calib)
+[`/Users/aai/Desktop/ITR_Proj/Project1 Task3/buzzwire_calib`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task3/buzzwire_calib)
 
 ### 3.1 Network Topology & Architecture
 * **HEAL Cobot Controller**: Embedded PC at IP `192.168.1.25` (SSH: `cobot@192.168.1.25`, password `cobot`).
@@ -142,7 +142,7 @@ ros2 launch addverb_cobot_control velocity_control.launch.py
 
 #### Terminal 3: Buzz Wire Trajectory Runner & Operator CLI
 ```bash
-cd "/Users/aai/Desktop/ITR_Proj/T3 2/buzzwire_calib"
+cd "/Users/aai/Desktop/ITR_Proj/Project1 Task3/buzzwire_calib"
 ```
 
 ---

@@ -23,12 +23,12 @@ OneGO_20261112_130525/
 
 To eliminate any doubt regarding autonomous operation and ensure full academic integrity, this run was simultaneously recorded across multiple perspectives with a visible physical time reference:
 
-### A. System Overhead View: [`video/run.mp4`](file:///Users/aai/Desktop/ITR_Proj/T1%202/videos/OneGO_20261112_130525/video/run.mp4)
+### A. System Overhead View: [`video/run.mp4`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1/videos/OneGO_20261112_130525/video/run.mp4)
 * **Duration**: 6 minutes 07 seconds ($13:05:25 - 13:11:32$)
 * **Perspective**: Calibrated Intel RealSense D435i mounted directly overhead at $Z \approx 510\text{ mm}$.
 * **Content**: Live perception bounding boxes, segmented peg contours, hole coordinates, and planned pick-and-place trajectories.
 
-### B. External Mobile View with Running Clock Timer: [`video/ExternalMobile_ClockTimerProof_20261112_130526.mp4`](file:///Users/aai/Desktop/ITR_Proj/T1%202/videos/OneGO_20261112_130525/video/ExternalMobile_ClockTimerProof_20261112_130526.mp4)
+### B. External Mobile View with Running Clock Timer: [`video/ExternalMobile_ClockTimerProof_20261112_130526.mp4`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1/videos/OneGO_20261112_130525/video/ExternalMobile_ClockTimerProof_20261112_130526.mp4)
 * **Start Time**: `13:05:26` (initiated within 1 second of the robot controller start).
 * **The Authenticity Guarantee**:
   - The mobile camera was positioned to capture both the entire physical robotic cell and a **running digital clock timer / stopwatch**.
@@ -36,7 +36,7 @@ To eliminate any doubt regarding autonomous operation and ensure full academic i
   - Demonstrates that zero manual intervention, teleoperation, or pause/resume splicing occurred.
 * **Storage Constraint Note**: Mobile recording ran at high-bitrate $1080\text{p60}$ for $\approx 3\text{m } 06\text{s}$ until internal phone memory became full and halted recording.
 
-### C. Final Placement Inspection: [`video/FinalAssignment_PegPlacement_20261112_131235.mp4`](file:///Users/aai/Desktop/ITR_Proj/T1%202/videos/OneGO_20261112_130525/video/FinalAssignment_PegPlacement_20261112_131235.mp4)
+### C. Final Placement Inspection: [`video/FinalAssignment_PegPlacement_20261112_131235.mp4`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1/videos/OneGO_20261112_130525/video/FinalAssignment_PegPlacement_20261112_131235.mp4)
 * **Timestamp**: `13:12:35` (recorded immediately following the completion of the sorting routine).
 * **Content**: High-definition inspection pass verifying that all geometric pegs (circle, square, hexagon, triangle) are accurately placed within their designated sockets with zero collisions or misalignments.
 

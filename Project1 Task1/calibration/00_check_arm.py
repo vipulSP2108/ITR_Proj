@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Step 0: ping all 5 motors, print position / hardware-error / voltage. Moves nothing.
 
-    cd "T1 2" && python calibration/00_check_arm.py
+    cd "Project1 Task1" && python calibration/00_check_arm.py
 """
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

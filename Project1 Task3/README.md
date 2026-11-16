@@ -1,12 +1,12 @@
 # Task 3: The Wire-Trace Trial (Active Tested Workspace)
 
-This directory ([`T3 2/`](file:///Users/aai/Desktop/ITR_Proj/T3%202)) is the **primary tested workspace** for Task 3 of the Tri-Wizard Robotics Competition: Autonomous 3D Buzz Wire Traversal using the Addverb HEAL 6-DOF Collaborative Robot.
+This directory ([`Project1 Task3/`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task3)) is the **primary tested workspace** for Task 3 of the Tri-Wizard Robotics Competition: Autonomous 3D Buzz Wire Traversal using the Addverb HEAL 6-DOF Collaborative Robot.
 
 > [!IMPORTANT]
 > **Working Codebase Location**:
 > All active scripts, configuration files, and recorded trajectory sessions live in:
-> [`T3 2/buzzwire_calib`](file:///Users/aai/Desktop/ITR_Proj/T3%202/buzzwire_calib)
-> *(which links directly to `T3 2/NEW/Task2_ITR-main (1)/Task2_ITR-main/Task2/taken/G9/Task2_ITR-main/buzzwire_calib`)*.
+> [`Project1 Task3/buzzwire_calib`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task3/buzzwire_calib)
+> *(which links directly to `Project1 Task3/NEW/Task2_ITR-main (1)/Task2_ITR-main/Task2/taken/G9/Task2_ITR-main/buzzwire_calib`)*.
 > **DO NOT modify the internal files under this path**—they contain the validated, lab-tested trajectory data!
 
 ---
@@ -14,7 +14,7 @@ This directory ([`T3 2/`](file:///Users/aai/Desktop/ITR_Proj/T3%202)) is the **p
 ## 1. Directory Structure
 
 ```
-/Users/aai/Desktop/ITR_Proj/T3 2/
+/Users/aai/Desktop/ITR_Proj/Project1 Task3/
 ├── README.md                      # This master guide
 ├── buzzwire_calib -> ...          # Symlink to active working codebase
 ├── analysis_and_dashboards -> ... # Symlink to 3D trajectory dashboard & HTML reports
@@ -39,17 +39,17 @@ This directory ([`T3 2/`](file:///Users/aai/Desktop/ITR_Proj/T3%202)) is the **p
 
 ## 2. Dedicated Documentation Library
 
-The active working folder ([`buzzwire_calib/`](file:///Users/aai/Desktop/ITR_Proj/T3%202/buzzwire_calib)) contains six comprehensive engineering guides:
+The active working folder ([`buzzwire_calib/`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task3/buzzwire_calib)) contains six comprehensive engineering guides:
 
 | Document | Link | Description |
 | :--- | :--- | :--- |
-| **01. Quickstart Operator Guide** | [`01_QUICKSTART_OPERATOR_GUIDE.md`](file:///Users/aai/Desktop/ITR_Proj/T3%202/buzzwire_calib/01_QUICKSTART_OPERATOR_GUIDE.md) | Terminal cheat sheet, dual-terminal workflow, keyboard shortcuts (`w/s/a/d/r/f`, `SPACE`, `v`, `z`, `g`), golden rules. |
-| **02. Robot Controls & Setup** | [`02_ROBOT_CONTROLS_AND_SYSTEM_SETUP.md`](file:///Users/aai/Desktop/ITR_Proj/T3%202/buzzwire_calib/02_ROBOT_CONTROLS_AND_SYSTEM_SETUP.md) | HEAL cobot IP (`192.168.1.25`), `./cobot run`, `./free_drive`, `./heal_server`, ROS 2 launch, KDL kinematics chain. |
-| **03. Stuck Arm Recovery** | [`03_STUCK_ARM_RECOVERY_AND_EDGE_CASES.md`](file:///Users/aai/Desktop/ITR_Proj/T3%202/buzzwire_calib/03_STUCK_ARM_RECOVERY_AND_EDGE_CASES.md) | Resolving hard movement trips, stale robot state recovery, carrot leash stall protection, live backtrack undo (`z`). |
-| **04. Control Math & Trajectory** | [`04_CONTROL_MATHEMATICS_AND_TRAJECTORY_PROCESSING.md`](file:///Users/aai/Desktop/ITR_Proj/T3%202/buzzwire_calib/04_CONTROL_MATHEMATICS_AND_TRAJECTORY_PROCESSING.md) | Resolved-rate DLS, Nakamura adaptive damping, Savitzky-Golay filtering, 2 mm arc resampling, time-optimal velocity profiling. |
-| **05. Trajectory Execution** | [`05_BUZZ_WIRE_TRAJECTORY_EXECUTION_AND_REPLAY.md`](file:///Users/aai/Desktop/ITR_Proj/T3%202/buzzwire_calib/05_BUZZ_WIRE_TRAJECTORY_EXECUTION_AND_REPLAY.md) | Wire stand geometry, frame alignment, workspace bounding box, speed ladder (20% to 100%), competition strategy. |
-| **06. Recalibrate From Scratch** | [`06_RECALIBRATE_FROM_SCRATCH_AND_VIDEO.md`](file:///Users/aai/Desktop/ITR_Proj/T3%202/buzzwire_calib/06_RECALIBRATE_FROM_SCRATCH_AND_VIDEO.md) | Full guide to re-teaching the wire, rebuilding CSVs, and filming official demonstration video. |
-| **Operations Protocol** | [`Operations.md`](file:///Users/aai/Desktop/ITR_Proj/T3%202/buzzwire_calib/Operations.md) | Lab operation checklists, safety protocols, and cross-shift handover notes. |
+| **01. Quickstart Operator Guide** | [`01_QUICKSTART_OPERATOR_GUIDE.md`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task3/buzzwire_calib/01_QUICKSTART_OPERATOR_GUIDE.md) | Terminal cheat sheet, dual-terminal workflow, keyboard shortcuts (`w/s/a/d/r/f`, `SPACE`, `v`, `z`, `g`), golden rules. |
+| **02. Robot Controls & Setup** | [`02_ROBOT_CONTROLS_AND_SYSTEM_SETUP.md`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task3/buzzwire_calib/02_ROBOT_CONTROLS_AND_SYSTEM_SETUP.md) | HEAL cobot IP (`192.168.1.25`), `./cobot run`, `./free_drive`, `./heal_server`, ROS 2 launch, KDL kinematics chain. |
+| **03. Stuck Arm Recovery** | [`03_STUCK_ARM_RECOVERY_AND_EDGE_CASES.md`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task3/buzzwire_calib/03_STUCK_ARM_RECOVERY_AND_EDGE_CASES.md) | Resolving hard movement trips, stale robot state recovery, carrot leash stall protection, live backtrack undo (`z`). |
+| **04. Control Math & Trajectory** | [`04_CONTROL_MATHEMATICS_AND_TRAJECTORY_PROCESSING.md`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task3/buzzwire_calib/04_CONTROL_MATHEMATICS_AND_TRAJECTORY_PROCESSING.md) | Resolved-rate DLS, Nakamura adaptive damping, Savitzky-Golay filtering, 2 mm arc resampling, time-optimal velocity profiling. |
+| **05. Trajectory Execution** | [`05_BUZZ_WIRE_TRAJECTORY_EXECUTION_AND_REPLAY.md`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task3/buzzwire_calib/05_BUZZ_WIRE_TRAJECTORY_EXECUTION_AND_REPLAY.md) | Wire stand geometry, frame alignment, workspace bounding box, speed ladder (20% to 100%), competition strategy. |
+| **06. Recalibrate From Scratch** | [`06_RECALIBRATE_FROM_SCRATCH_AND_VIDEO.md`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task3/buzzwire_calib/06_RECALIBRATE_FROM_SCRATCH_AND_VIDEO.md) | Full guide to re-teaching the wire, rebuilding CSVs, and filming official demonstration video. |
+| **Operations Protocol** | [`Operations.md`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task3/buzzwire_calib/Operations.md) | Lab operation checklists, safety protocols, and cross-shift handover notes. |
 
 ---
 
@@ -57,7 +57,7 @@ The active working folder ([`buzzwire_calib/`](file:///Users/aai/Desktop/ITR_Pro
 
 Navigate into the active working folder:
 ```bash
-cd "/Users/aai/Desktop/ITR_Proj/T3 2/buzzwire_calib"
+cd "/Users/aai/Desktop/ITR_Proj/Project1 Task3/buzzwire_calib"
 ```
 
 ### A. Autonomous Traversal Execution (`buzzwire_run.sh`)

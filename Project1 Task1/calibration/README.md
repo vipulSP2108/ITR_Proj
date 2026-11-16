@@ -1,7 +1,7 @@
 # Camera <-> robot calibration (OpenMANIPULATOR-X + overhead RealSense)
 
 Everything here runs offline. Start scripts from a **real terminal** (macOS only gives the
-camera to terminal apps), inside the `T1 2` folder.
+camera to terminal apps), inside the `Project1 Task1` folder.
 
 ## When to redo it
 Any time the camera, the robot base, or the table/mat has moved. It takes ~10 minutes:

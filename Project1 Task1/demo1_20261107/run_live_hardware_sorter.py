@@ -30,8 +30,8 @@ from typing import Optional, List, Dict, Tuple
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(BASE_DIR, "openmanipulator_test"))
-sys.path.insert(0, os.path.join(BASE_DIR, "T1 2"))
-sys.path.insert(0, os.path.join(BASE_DIR, "T1 2", "src"))
+sys.path.insert(0, os.path.join(BASE_DIR, "Project1 Task1"))
+sys.path.insert(0, os.path.join(BASE_DIR, "Project1 Task1", "src"))
 sys.path.insert(0, os.path.join(BASE_DIR, "T1", "src"))
 
 from dynamixel_wrapper import (
@@ -236,7 +236,7 @@ class LiveHardwareSorter:
 
     def execute_trajectory(self):
         # 3D projections from autonomous camera detection
-        sys.path.insert(0, os.path.join(BASE_DIR, "T1 2"))
+        sys.path.insert(0, os.path.join(BASE_DIR, "Project1 Task1"))
         from run_hardware_pipeline import pixel_to_robot, smooth_move
 
         p_pick = getattr(self, "p_pick", None)
@@ -250,7 +250,7 @@ class LiveHardwareSorter:
         place_x, place_y = float(p_place[0]), float(p_place[1])
         mid_x, mid_y = (pick_x + place_x) / 2.0, (pick_y + place_y) / 2.0
 
-        cfg_path = os.path.join(BASE_DIR, "T1 2", "config", "workspace_dimensions.yaml")
+        cfg_path = os.path.join(BASE_DIR, "Project1 Task1", "config", "workspace_dimensions.yaml")
         z_grasp = 35.0
         z_insert = 28.0
         if os.path.exists(cfg_path):

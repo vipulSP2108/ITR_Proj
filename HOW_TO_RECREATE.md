@@ -87,7 +87,7 @@ flowchart LR
 
 ### Step 1: Actuator Mechanical & ID Configuration
 1. Connect each Dynamixel XM430-W350-T actuator individually to the U2D2 adapter.
-2. Using ROBOTIS DYNAMIXEL Wizard 2.0 or [`T1 2/openmanipulator_test/01_scan_and_ping.py`](file:///Users/aai/Desktop/ITR_Proj/T1%202/openmanipulator_test/01_scan_and_ping.py), configure:
+2. Using ROBOTIS DYNAMIXEL Wizard 2.0 or [`Project1 Task1/openmanipulator_test/01_scan_and_ping.py`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1/openmanipulator_test/01_scan_and_ping.py), configure:
    * **Baud Rate**: `1,000,000 bps` (1 Mbps).
    * **Protocol**: `2.0`.
    * **Operating Mode**: Current-based Position Control (Address 11 = 5).
@@ -97,7 +97,7 @@ flowchart LR
      - ID 13: Elbow Pitch Joint (`joint3`)
      - ID 14: Wrist Pitch Joint (`joint4`)
      - ID 15: Parallel Gripper (`gripper`)
-   *(Full specs and thermal/voltage limits are cataloged in [`device/ROBOT_INFO.md`](file:///Users/aai/Desktop/ITR_Proj/T1%202/device/ROBOT_INFO.md) and [`device/SAFETY_AND_PROTECTION.md`](file:///Users/aai/Desktop/ITR_Proj/T1%202/device/SAFETY_AND_PROTECTION.md)).*
+   *(Full specs and thermal/voltage limits are cataloged in [`device/ROBOT_INFO.md`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1/device/ROBOT_INFO.md) and [`device/SAFETY_AND_PROTECTION.md`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1/device/SAFETY_AND_PROTECTION.md)).*
 
 > [!CAUTION]
 > **Zero Pose Calibration**:
@@ -105,7 +105,7 @@ flowchart LR
 
 ### Step 2: Camera Rigging & Extrinsic Hand-Eye Calibration
 1. Fix the RealSense D435i overhead pointing downward at $Z \approx 510\text{ mm}$ relative to the robot base.
-2. In [`T1 2/`](file:///Users/aai/Desktop/ITR_Proj/T1%202), execute the automated calibration:
+2. In [`Project1 Task1/`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1), execute the automated calibration:
    ```bash
    ./run_calibration.sh
    ```
@@ -188,7 +188,7 @@ $$\mathbf{q}(\alpha) = \left[ \cos\left(\frac{\pi}{4} + \frac{\alpha}{2}\right),
 
 You can fully test the mathematical stack offline:
 ```bash
-cd "/Users/aai/Desktop/ITR_Proj/T3 2/buzzwire_calib"
+cd "/Users/aai/Desktop/ITR_Proj/Project1 Task3/buzzwire_calib"
 
 # Run kinematic forward/differential unit tests:
 python3 scripts/selftest.py

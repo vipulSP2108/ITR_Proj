@@ -17,7 +17,7 @@ This directory hosts recorded video demonstrations, benchmark execution logs, an
 The terminal logs below record the robot controller's live real-time benchmark executions on the physical Addverb HEAL arm, demonstrating the **minimum traversal times** achieved on the physical wire while preserving zero electrical continuity contacts:
 
 ### A. Record Fastest Run: 99.8 Seconds (`--speed 1.0`)
-* **Benchmark Screenshot**: [`terminal_benchmark_speed1.0_99.8s.png`](file:///Users/aai/Desktop/ITR_Proj/T3%202/videos/terminal_benchmark_speed1.0_99.8s.png)
+* **Benchmark Screenshot**: [`terminal_benchmark_speed1.0_99.8s.png`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task3/videos/terminal_benchmark_speed1.0_99.8s.png)
 
 ```text
 IITGN-robotics$ ./buzzwire_run.sh lr --speed 1.0
@@ -35,7 +35,7 @@ DONE in 99.8 s. Worst tracking error 5.23 mm
 ```
 
 ### B. Second Fastest Benchmark Run: 101.8 Seconds (`--speed 0.65`)
-* **Benchmark Screenshot**: [`terminal_benchmark_speed0.65_101.8s.png`](file:///Users/aai/Desktop/ITR_Proj/T3%202/videos/terminal_benchmark_speed0.65_101.8s.png)
+* **Benchmark Screenshot**: [`terminal_benchmark_speed0.65_101.8s.png`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task3/videos/terminal_benchmark_speed0.65_101.8s.png)
 
 ```text
 IITGN-robotics$ ./buzzwire_run.sh lr --speed 0.65
@@ -55,7 +55,7 @@ DONE in 101.8 s. Worst tracking error 5.47 mm
 ### Benchmark Comparison Table
 | Benchmark Metric | Fastest Run (`--speed 1.0`) | 2nd Fastest Run (`--speed 0.65`) | Clearance & Safety Margin |
 | :--- | :--- | :--- | :--- |
-| **Proof Screenshot** | [`terminal_benchmark_speed1.0_99.8s.png`](file:///Users/aai/Desktop/ITR_Proj/T3%202/videos/terminal_benchmark_speed1.0_99.8s.png) | [`terminal_benchmark_speed0.65_101.8s.png`](file:///Users/aai/Desktop/ITR_Proj/T3%202/videos/terminal_benchmark_speed0.65_101.8s.png) | High-resolution terminal capture |
+| **Proof Screenshot** | [`terminal_benchmark_speed1.0_99.8s.png`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task3/videos/terminal_benchmark_speed1.0_99.8s.png) | [`terminal_benchmark_speed0.65_101.8s.png`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task3/videos/terminal_benchmark_speed0.65_101.8s.png) | High-resolution terminal capture |
 | **Total 3D Arc Traversal** | **$1246\text{ mm}$** | **$1246\text{ mm}$** | Full wire span from L-anchor to R-goal |
 | **Waypoint Density** | **$630\text{ points}$** | **$630\text{ points}$** | $\approx 1.98\text{ mm}$ per waypoint |
 | **Physical Traversal Time**| **$99.8\text{ s}$** ($1\text{ min } 39.8\text{ s}$) | **$101.8\text{ s}$** ($1\text{ min } 41.8\text{ s}$) | Sub-100s record achieved |
@@ -70,8 +70,8 @@ The following high-definition (1080p @ 60fps) video captures of the physical arm
 
 | Video File Name | Traversal Direction & Mode | Commanded Speed | Video Specs & Duration | Notes & Verification |
 | :--- | :--- | :--- | :--- | :--- |
-| [`FINAL_LR.mp4`](file:///Users/aai/Desktop/ITR_Proj/T3%202/videos/FINAL_LR.mp4) | **Forward: Left $\to$ Right (L $\to$ R)** | `--speed 0.65` | $1080\text{p60}$, $102.97\text{ s}$ ($71.5\text{ MB}$) | Physical proof video matching the **$101.8\text{ s}$** terminal run log. |
-| [`FINAL_RL.mp4`](file:///Users/aai/Desktop/ITR_Proj/T3%202/videos/FINAL_RL.mp4) | **Return: Right $\to$ Left (R $\to$ L)** | Controlled Return | $1080\text{p60}$, $106.71\text{ s}$ ($71.1\text{ MB}$) | Reverse wire navigation confirming symmetric bidirectional clearance. |
+| [`FINAL_LR.mp4`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task3/videos/FINAL_LR.mp4) | **Forward: Left $\to$ Right (L $\to$ R)** | `--speed 0.65` | $1080\text{p60}$, $102.97\text{ s}$ ($71.5\text{ MB}$) | Physical proof video matching the **$101.8\text{ s}$** terminal run log. |
+| [`FINAL_RL.mp4`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task3/videos/FINAL_RL.mp4) | **Return: Right $\to$ Left (R $\to$ L)** | Controlled Return | $1080\text{p60}$, $106.71\text{ s}$ ($71.1\text{ MB}$) | Reverse wire navigation confirming symmetric bidirectional clearance. |
 
 ---
 
@@ -82,8 +82,8 @@ When uploading further takes or evaluations, reference this convention:
 | Priority | Exact File Name | Associated Execution Command | Description |
 | :--- | :--- | :--- | :--- |
 | **Fastest Record Run** | — | `./buzzwire_run.sh lr --speed 1.0` | Sub-100s competition traversal (**$99.8\text{ s}$**, error $5.23\text{ mm}$). |
-| **Fast Benchmark Run** | [`FINAL_LR.mp4`](file:///Users/aai/Desktop/ITR_Proj/T3%202/videos/FINAL_LR.mp4) | `./buzzwire_run.sh lr --speed 0.65` | Fast competition traversal demonstrating optimal speed performance (**$101.8\text{ s}$**). |
-| **Return Traversal Run** | [`FINAL_RL.mp4`](file:///Users/aai/Desktop/ITR_Proj/T3%202/videos/FINAL_RL.mp4) | `./buzzwire_run.sh rl --speed 0.10` | Safe return traversal Right-to-Left along the wire track. |
+| **Fast Benchmark Run** | [`FINAL_LR.mp4`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task3/videos/FINAL_LR.mp4) | `./buzzwire_run.sh lr --speed 0.65` | Fast competition traversal demonstrating optimal speed performance (**$101.8\text{ s}$**). |
+| **Return Traversal Run** | [`FINAL_RL.mp4`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task3/videos/FINAL_RL.mp4) | `./buzzwire_run.sh rl --speed 0.10` | Safe return traversal Right-to-Left along the wire track. |
 | Smooth L $\to$ R Take | `task3_lr_smooth.mp4` | `./buzzwire_run.sh lr -smooth --speed 0.35` | Forward Left-to-Right traversal along the Savitzky-Golay spline-smoothed trajectory. |
 | Smooth R $\to$ L Take | `task3_rl_smooth.mp4` | `./buzzwire_run.sh rl -smooth --speed 0.35` | Safe return traversal Right-to-Left along the smooth path. |
 

@@ -4,8 +4,8 @@ Welcome to the unified robotics repository containing the perception, kinematics
 
 > [!IMPORTANT]
 > **Active Tested Workspaces**:
-> * **Task 1 (Peg Sorting)**: [`T1 2/`](file:///Users/aai/Desktop/ITR_Proj/T1%202)
-> * **Task 3 (Buzz Wire Navigation)**: [`T3 2/`](file:///Users/aai/Desktop/ITR_Proj/T3%202) (Direct working path: [`T3 2/buzzwire_calib`](file:///Users/aai/Desktop/ITR_Proj/T3%202/buzzwire_calib))
+> * **Task 1 (Peg Sorting)**: [`Project1 Task1/`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1)
+> * **Task 3 (Buzz Wire Navigation)**: [`Project1 Task3/`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task3) (Direct working path: [`Project1 Task3/buzzwire_calib`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task3/buzzwire_calib))
 > * All legacy snapshots, early calibrations, and scratch buffers are organized under [`dump/`](file:///Users/aai/Desktop/ITR_Proj/dump) or marked as supporting.
 
 ---
@@ -15,8 +15,8 @@ Welcome to the unified robotics repository containing the perception, kinematics
 ```mermaid
 flowchart TD
     Repo["Tri-Wizard Robotics Workspace (/Users/aai/Desktop/ITR_Proj)"]
-    Repo --> T1["Task 1: Peg Sorting (T1 2/)"]
-    Repo --> T3["Task 3: Buzz Wire Trace (T3 2/)"]
+    Repo --> T1["Task 1: Peg Sorting (Project1 Task1/)"]
+    Repo --> T3["Task 3: Buzz Wire Trace (Project1 Task3/)"]
     Repo --> Guides["Master Documentation Guides"]
     Repo --> Dump["Buffer & Archives (dump/)"]
     
@@ -29,8 +29,8 @@ flowchart TD
 
 | Task | Primary Working Directory | Hardware Platform | Core Capabilities |
 | :--- | :--- | :--- | :--- |
-| **Task 1: Peg Sorter** | [`T1 2/`](file:///Users/aai/Desktop/ITR_Proj/T1%202) | ROBOTIS OpenMANIPULATOR-X (5x Dynamixel XM430-W350-T) + Intel RealSense D435i | Overhead RGB perception, table segmentation, 40-point hand-eye calibration, hole matching, autonomous pick-and-place. |
-| **Task 3: Buzz Wire** | [`T3 2/`](file:///Users/aai/Desktop/ITR_Proj/T3%202) / [`buzzwire_calib`](file:///Users/aai/Desktop/ITR_Proj/T3%202/buzzwire_calib) | Addverb HEAL 6-DOF Cobot + 3D Wire Game apparatus + Continuity Buzzer | 6-DOF resolved-rate teleop, gravity-compensated teaching, Savitzky-Golay smoothing, 2 mm arc resampling, collision-free replay ($< 45\text{s}$). |
+| **Task 1: Peg Sorter** | [`Project1 Task1/`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task1) | ROBOTIS OpenMANIPULATOR-X (5x Dynamixel XM430-W350-T) + Intel RealSense D435i | Overhead RGB perception, table segmentation, 40-point hand-eye calibration, hole matching, autonomous pick-and-place. |
+| **Task 3: Buzz Wire** | [`Project1 Task3/`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task3) / [`buzzwire_calib`](file:///Users/aai/Desktop/ITR_Proj/Project1%20Task3/buzzwire_calib) | Addverb HEAL 6-DOF Cobot + 3D Wire Game apparatus + Continuity Buzzer | 6-DOF resolved-rate teleop, gravity-compensated teaching, Savitzky-Golay smoothing, 2 mm arc resampling, collision-free replay ($< 45\text{s}$). |
 
 ---
 
@@ -52,7 +52,7 @@ To ensure complete context persistence across shifts when moving between operato
 ### 3.1 Task 1: Autonomous Peg Sorting
 ```bash
 # 1. Open Terminal in active workspace:
-cd /Users/aai/Desktop/ITR_Proj/"T1 2"
+cd /Users/aai/Desktop/ITR_Proj/"Project1 Task1"
 
 # 2. Check 12V supply & servo communication:
 python3 calibration/00_check_arm.py
@@ -80,7 +80,7 @@ cd ~/Debojit_WS/addverb_ws/ && source /opt/ros/humble/setup.bash && source insta
 ros2 launch addverb_cobot_control velocity_control.launch.py
 
 # Terminal 3 (Operator Traversal Execution):
-cd "/Users/aai/Desktop/ITR_Proj/T3 2/buzzwire_calib"
+cd "/Users/aai/Desktop/ITR_Proj/Project1 Task3/buzzwire_calib"
 ./buzzwire_run.sh goto L                  # Position arm at Left Post
 ./buzzwire_run.sh lr balanced             # Traverse wire L -> R (~55s)
 ./buzzwire_run.sh rl                      # Safe return wire traversal R -> L

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Full camera <-> robot calibration, start to finish.  Run from a real terminal:
-#     cd "T1 2" && ./run_calibration.sh
+#     cd "Project1 Task1" && ./run_calibration.sh
 # Re-run whenever the camera, the robot base or the table has been moved.
 # BEFORE: take all pegs off the mat (the arm sweeps 45 mm above it), leave the ArUco marker on it.
 cd "$(dirname "$0")"
