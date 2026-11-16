@@ -16,7 +16,6 @@ When uploading videos to this folder, please name the files according to this co
 | Take 3 (Raw L $\to$ R) | `task3_lr_raw.mp4` | `./buzzwire_run.sh lr --speed 0.35` | Forward Left-to-Right traversal using raw recorded waypoints. |
 | Take 4 (Raw R $\to$ L) | `task3_rl_raw.mp4` | `./buzzwire_run.sh rl --speed 0.35` | Return Right-to-Left traversal using raw recorded waypoints. |
 | Fast Run Take | `task3_lr_fast.mp4` | `./buzzwire_run.sh lr -smooth --speed 0.65` | Fast competition traversal demonstrating optimal speed performance. |
-
 ---
 
 ## 2. Recording & Camera Framing Guidelines

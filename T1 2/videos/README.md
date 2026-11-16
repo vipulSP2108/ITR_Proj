@@ -4,16 +4,15 @@ This folder is the designated upload location for Task 1 video recordings.
 
 ---
 
-## 1. Designated File Names for Upload
+## 1. Designated File Names & Existing Recorded Runs
 
-When uploading videos to this folder, please name the files according to this convention:
+Each recorded run folder is modularized into `video/` (continuous MP4 video) and `images/` (sequential stage photos, motion plans, and workspace scans):
 
-| Priority | Exact File Name | Description |
+| Run Name & Focus | Video Path | Images Path & Contents |
 | :--- | :--- | :--- |
-| **Primary (Full Run)** | `task1_autonomous_peg_sorting.mp4` | **Main demonstration video**: Complete autonomous run sorting all shapes (circle, square, hexagon, triangle) from table detection to final socket insertion. |
-| Alternate / Component | `task1_full_run_all_pegs.mp4` | Full run showing all 4 pegs sorted sequentially. |
-| Component | `task1_single_peg_circle.mp4` | Single peg demonstration isolating the pick-and-place precision. |
-| Calibration | `task1_handeye_calibration.mp4` | Demonstration of the 40-point automated extrinsic calibration routine (`./run_calibration.sh`). |
+| **Run 1: Full Sequence with Parking** | [`OneGO_withparking_20261112_122225/video/run.mp4`](file:///Users/aai/Desktop/ITR_Proj/T1%202/videos/OneGO_withparking_20261112_122225/video/run.mp4) ($418.4\text{s}$, 6 min 58s cropped run) | [`OneGO_withparking_20261112_122225/images/`](file:///Users/aai/Desktop/ITR_Proj/T1%202/videos/OneGO_withparking_20261112_122225/images) (40 stage photos `01_`–`40_`, 5 motion plans, 7 scans) |
+| **Run 2: Continuous Single-Pass Sort** | [`OneGO_20261112_130525/video/run.mp4`](file:///Users/aai/Desktop/ITR_Proj/T1%202/videos/OneGO_20261112_130525/video/run.mp4) ($367.3\text{s}$, 6 min 7s full run) | [`OneGO_20261112_130525/images/`](file:///Users/aai/Desktop/ITR_Proj/T1%202/videos/OneGO_20261112_130525/images) (32 stage photos `01_`–`32_`, 4 motion plans, 5 scans) |
+| **Primary Submission Video** | [`task1_autonomous_peg_sorting.mp4`](file:///Users/aai/Desktop/ITR_Proj/T1%202/videos/task1_autonomous_peg_sorting.mp4) | High-resolution demonstration video in root of `videos/`. |
 
 ---
 
